@@ -1,0 +1,28 @@
+---
+title: "IS415-GAA"
+---
+
+This is a Quarto website.
+
+To learn more about Quarto websites visit <https://quarto.org/docs/websites>.
+
+# Heading 1
+
+## Heading 2
+
+### Heading 3
+
+> Code Block
+
+    Code Block
+
+```{r}
+1 + 1
+```
+
+```{r}
+library(tidyverse)
+library(datasets)
+
+head(beaver1)
+```
