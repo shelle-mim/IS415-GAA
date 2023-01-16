@@ -5,6 +5,17 @@ website:
   title: "IS415-GAA"
   navbar:
     left:
+      - text: "Hands-on Exercise"
+        menu:
+          - text: "Hands-on Exercise 1"
+            href: "Hands-on_Exercise/wk2/wk2.qmd"
+      - text: "In-class Exercise"
+        menu:
+          - text: "ICE 1"
+            href: "In-class_Exercise/wk1/wk1.qmd"
+          - text: "ICE 2"
+            href: "In-class_Exercise/wk2/wk2.qmd"
+    right:
       - href: index.qmd
         text: Home
       - about.qmd
