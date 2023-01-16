@@ -8,9 +8,15 @@ execute:
 editor: visual
 ---
 
+## Check if / install relevant packages
+
 ```{r}
 pacman::p_load(sf, tidyverse, funModeling)
 ```
+
+## Import Geospatial Data
+
+### **GeoBoundaries data set**
 
 ```{r}
 geoNGA = st_read(dsn = "data/geospatial",
@@ -19,5 +25,43 @@ geoNGA = st_read(dsn = "data/geospatial",
 ```
 
 ```{r}
-glimpse(geoNGA)
+head(geoNGA, n=3)
+```
+
+### **NGA data set**
+
+```{r}
+NGA <- st_read("data/geospatial/",
+               layer = "nga_admbnda_adm2") %>%
+  st_transform(crs = 26392)
+```
+
+```{r}
+head(NGA, n=3)
+```
+
+## Import Aspatial Data
+
+```{r}
+wp_nga <- read_csv("data/aspatial/WPDEx.csv") %>%
+  filter(`#clean_country_name` == "Nigeria")
+```
+
+## Convert Aspatial to Geospatial
+
+```{r}
+wp_nga$Geometry = st_as_sfc(wp_nga$`New Georeferenced Column`)
+head(wp_nga)
+```
+
+```{r}
+wp_sf <- st_sf(wp_nga, crs=4326)
+wp_sf
+```
+
+## Projection Transformation
+
+```{r}
+wp_sf <- wp_sf %>%
+  st_transform(crs = 26392)
 ```
