@@ -7,14 +7,14 @@ website:
     left:
       - text: "Hands-on Exercise"
         menu:
-          - text: "Hands-on Exercise 1"
-            href: "Hands-on_Exercise/wk2/wk2.qmd"
+          - text: "Hands-on Exercise 2"
+            href: "Hands-on_Exercise/Wk2/HOE_Wk2.qmd"
       - text: "In-class Exercise"
         menu:
-          - text: "ICE 1"
-            href: "In-class_Exercise/wk1/wk1.qmd"
-          - text: "ICE 2"
-            href: "In-class_Exercise/wk2/wk2.qmd"
+          - text: "In-Class Exercise 1"
+            href: "In-class_Exercise/Wk1/ICE_Wk1.qmd"
+          - text: "In-Class Exercise 2"
+            href: "In-class_Exercise/Wk2/ICE_Wk2.qmd"
     right:
       - href: index.qmd
         text: Home
