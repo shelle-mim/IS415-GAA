@@ -1,6 +1,7 @@
 ---
 title: In-Class Exercise 2
-date: "`r Sys.Date()`"
+date: "16 Jan 2023"
+date-modified: "`r Sys.Date()`"
 format: html
 execute: 
   message: false
@@ -33,7 +34,7 @@ head(geoNGA, n=3)
 ```{r}
 NGA <- st_read("data/geospatial/",
                layer = "nga_admbnda_adm2") %>%
-  st_transform(crs = 26392)
+  st_transform(crs = 26392) # transform to PCS of Nigeria
 ```
 
 ```{r}
@@ -44,7 +45,7 @@ head(NGA, n=3)
 
 ```{r}
 wp_nga <- read_csv("data/aspatial/WPDEx.csv") %>%
-  filter(`#clean_country_name` == "Nigeria")
+  filter(`#clean_country_name` == "Nigeria") #remove irrelavent data, keep the data small
 ```
 
 ```{r}
@@ -55,6 +56,7 @@ saveRDS(wp_nga, file = "data/aspatial/wpa_nga.rds")
 ## Convert Aspatial to Geospatial
 
 ```{r}
+# use log and lat to make georeference col
 wp_nga$Geometry = st_as_sfc(wp_nga$`New Georeferenced Column`)
 head(wp_nga)
 ```
@@ -70,6 +72,33 @@ wp_sf
 # Transform to appropriate projected coordinate system of Nigeria
 wp_sf <- wp_sf %>%
   st_transform(crs = 26392)
+```
+
+## Data Cleaning
+
+### Select relavent cols
+
+```{r}
+NGA <- NGA %>%
+  select(c(3:4, 8:9)) # c => column, select cols 3-4 and 8-9
+```
+
+### Check for duplicate name
+
+```{r}
+NGA$ADM2_EN[duplicated(NGA$ADM2_EN)==TRUE]
+```
+
+=\> shows LGAs with the same name
+
+```{r}
+duplicated_LGA <- NGA$ADM2_EN[duplicated(NGA$ADM2_EN)==TRUE]
+
+duplicated_indices <- which(NGA$ADM2_EN %in% duplicated_LGA)
+
+for (ind in duplicated_indices) {
+  NGA$ADM2_EN[ind] <- paste(NGA$ADM2_EN[ind], NGA$ADM1_EN[ind], sep=", ")
+}
 ```
 
 ## Derive Proportion of Functional & Non Functional Water Points
@@ -143,4 +172,94 @@ ggplot(data=nga_combined,
   labs(title = "",
       x = "Proportion of Functional Water Points",
       y = "Total Water Points")
+```
+
+## Data Wrangling
+
+```{r}
+freq(data = wp_sf, input='#status_clean')
+```
+
+```{r}
+wp_sf_nga <- wp_sf %>%
+  rename(status_clean = '#status_clean') %>%
+  select(status_clean) %>%
+  mutate(status_clean = replace_na(
+    status_clean, "unknown"
+  ))
+```
+
+```{r}
+wp_functional <- wp_sf_nga %>%
+  filter(status_clean %in%
+           c("Functional",
+             "Functional but not in use",
+             "Functional but needs repair"))
+```
+
+```{r}
+wp_nonfunctional <- wp_sf_nga %>%
+  filter(status_clean %in%
+           c("Abandoned/Decommissioned",
+             "Abandoned",
+             "Non-Functional due to dry season",
+             "Non-Functional",
+             "Non functional due to dry season"))
+```
+
+```{r}
+wp_unknown <- wp_sf_nga %>% filter(`status_clean` %in% 
+                                     c("unknown"))
+```
+
+```{r}
+wp_functional
+```
+
+```{r}
+NGA_wp <- NGA %>%
+  mutate(`total_wp` = lengths(
+    st_intersects(NGA, wp_sf_nga)
+  )) %>%
+  mutate(`wp_functional` = lengths(
+    st_intersects(NGA, wp_functional)
+  )) %>%
+  mutate(`wp_nonfunctional` = lengths(
+    st_intersects(NGA, wp_nonfunctional)
+  )) %>%
+  mutate(`wp_unknown` = lengths(
+    st_intersects(NGA, wp_unknown)
+  ))
+```
+
+```{r}
+glimpse(NGA)
+```
+
+```{r}
+glimpse(NGA_wp)
+```
+
+```{r}
+write_rds(NGA_wp, "data/rds/NGA_wp.rds")
+```
+
+## Visualization
+
+```{r}
+ggplot(data=NGA_wp,
+       aes(x=total_wp)) +
+  geom_histogram(bins=20,
+                 color="black",
+                 fill="light blue") +
+  geom_vline(aes(xintercept=mean(
+    total_wp, na.rm=T
+  )),
+  color="red",
+  linetype="dashed",
+  linewidth=0.8) +
+  ggtitle("Distribution of total water points by LGA") +
+  xlab("No. of water points") +
+  ylab("No. of\nLGAs") +
+  theme(axis.title.y=element_text(angle = 0))
 ```

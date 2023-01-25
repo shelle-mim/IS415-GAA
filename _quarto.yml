@@ -17,6 +17,8 @@ website:
             href: "In-class_Exercise/Wk1/ICE_Wk1.qmd"
           - text: "In-Class Exercise 2"
             href: "In-class_Exercise/Wk2/ICE_Wk2.qmd"
+          - text: "In-Class Exercise 3"
+            href: "In-class_Exercise/Wk3/ICE_Wk3.qmd"
     right:
       - href: index.qmd
         text: Home
@@ -24,7 +26,7 @@ website:
 
 format:
   html:
-    theme: cosmo
+    theme: sketchy
     css: styles.css
     toc: true
 
