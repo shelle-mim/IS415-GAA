@@ -99,10 +99,10 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="../../site_libs/quarto-html/anchor.min.js"></script>
 <link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="dark">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -204,6 +204,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   <ul>
   <li><a href="#import-packages" id="toc-import-packages" class="nav-link active" data-scroll-target="#import-packages">Import Packages</a></li>
   <li><a href="#load-data" id="toc-load-data" class="nav-link" data-scroll-target="#load-data">Load Data</a></li>
+  <li><a href="#plot-choropleth-maps" id="toc-plot-choropleth-maps" class="nav-link" data-scroll-target="#plot-choropleth-maps">Plot Choropleth Maps</a></li>
   <li><a href="#extreme-value-maps" id="toc-extreme-value-maps" class="nav-link" data-scroll-target="#extreme-value-maps">Extreme Value Maps</a>
   <ul class="collapse">
   <li><a href="#percentile-map-special-type-of-quantile-map" id="toc-percentile-map-special-type-of-quantile-map" class="nav-link" data-scroll-target="#percentile-map-special-type-of-quantile-map">Percentile map: special type of quantile map</a></li>
@@ -236,7 +237,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
     <div>
     <div class="quarto-title-meta-heading">Modified</div>
     <div class="quarto-title-meta-contents">
-      <p class="date-modified">January 25, 2023</p>
+      <p class="date-modified">January 28, 2023</p>
     </div>
   </div>
     
@@ -256,6 +257,9 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div class="cell">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>NGA_wp <span class="ot">=</span> <span class="fu">read_rds</span>(<span class="st">"data/rds/NGA_wp.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+</section>
+<section id="plot-choropleth-maps" class="level2">
+<h2 class="anchored" data-anchor-id="plot-choropleth-maps">Plot Choropleth Maps</h2>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>p1 <span class="ot">&lt;-</span> <span class="fu">tm_shape</span>(NGA_wp) <span class="sc">+</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="st">"wp_functional"</span>,</span>
@@ -268,33 +272,51 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>            <span class="at">legend.outside =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>p1</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_style</span>(<span class="st">"albatross"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>p1</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="ICE_Wk3_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid" width="672"></p>
+<p><img src="ICE_Wk3_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>p2 <span class="ot">&lt;-</span> <span class="fu">tm_shape</span>(NGA_wp) <span class="sc">+</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="st">"total_wp"</span>,</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>          <span class="at">n =</span> <span class="dv">10</span>,</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>          <span class="at">style =</span> <span class="st">"equal"</span>,</span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>          <span class="at">palette =</span> <span class="st">"Blues"</span>) <span class="sc">+</span> <span class="co">#color scheme</span></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_borders</span>(<span class="at">lwd =</span> <span class="fl">0.1</span>, <span class="co">#line width</span></span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>             <span class="at">alpha =</span> <span class="dv">1</span>) <span class="sc">+</span> <span class="co">#opacity/transparency</span></span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_layout</span>(<span class="at">main.title =</span> <span class="st">"Distribution of functional water points"</span>,</span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>            <span class="at">legend.outside =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>p2 <span class="ot">&lt;-</span> <span class="fu">tm_shape</span>(NGA_wp) <span class="sc">+</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="st">"total_wp"</span>,</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>          <span class="at">n =</span> <span class="dv">10</span>,</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>          <span class="at">style =</span> <span class="st">"equal"</span>,</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>          <span class="at">palette =</span> <span class="st">"Blues"</span>) <span class="sc">+</span> <span class="co">#color scheme</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_borders</span>(<span class="at">lwd =</span> <span class="fl">0.1</span>, <span class="co">#line width</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>             <span class="at">alpha =</span> <span class="dv">1</span>) <span class="sc">+</span> <span class="co">#opacity/transparency</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_layout</span>(<span class="at">main.title =</span> <span class="st">"Distribution of functional water points"</span>,</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>            <span class="at">legend.outside =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_arrange</span>(p2, p1, <span class="at">nrow=</span><span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_arrange</span>(p2, p1, <span class="at">nrow=</span><span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="ICE_Wk3_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid" width="672"></p>
+<p><img src="ICE_Wk3_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Add cols for percentile values for functional and nonfunctional WPs</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>NGA_wp <span class="ot">&lt;-</span> NGA_wp <span class="sc">%&gt;%</span></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">pct_functional =</span> wp_functional<span class="sc">/</span>total_wp) <span class="sc">%&gt;%</span></span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">pct_nonfunctional =</span> wp_nonfunctional<span class="sc">/</span>total_wp)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Add cols for percentile values for functional and nonfunctional WPs</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>NGA_wp <span class="ot">&lt;-</span> NGA_wp <span class="sc">%&gt;%</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">pct_functional =</span> wp_functional<span class="sc">/</span>total_wp) <span class="sc">%&gt;%</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">pct_nonfunctional =</span> wp_nonfunctional<span class="sc">/</span>total_wp)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(NGA_wp) <span class="sc">+</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="st">"pct_functional"</span>,</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>          <span class="at">n =</span> <span class="dv">10</span>,</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>          <span class="at">style =</span> <span class="st">"equal"</span>,</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>          <span class="at">palette =</span> <span class="st">"Blues"</span>,</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>          <span class="at">legend.hist =</span> <span class="cn">TRUE</span>) <span class="sc">+</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_borders</span>(<span class="at">lwd =</span> <span class="fl">0.1</span>,</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>             <span class="at">alpha =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_layout</span>(<span class="at">main.title =</span> <span class="st">"Rate map of functional water point by LGAs"</span>,</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>            <span class="at">legend.outside =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="ICE_Wk3_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid" width="672"></p>
+</div>
 </div>
 </section>
 <section id="extreme-value-maps" class="level2">
@@ -303,55 +325,56 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <h3 class="anchored" data-anchor-id="percentile-map-special-type-of-quantile-map">Percentile map: special type of quantile map</h3>
 <p>Create a classification scheme (including of beginning and end)</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Excluse NA records</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>NGA_wp <span class="ot">&lt;-</span> NGA_wp <span class="sc">%&gt;%</span></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">drop_na</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Exclusde NA records</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>NGA_wp <span class="ot">&lt;-</span> NGA_wp <span class="sc">%&gt;%</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">drop_na</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create custom classification &amp; extracting vals</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>percent <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">0</span>, .<span class="dv">01</span>, .<span class="dv">1</span>, .<span class="dv">5</span>, .<span class="dv">9</span>, .<span class="dv">99</span>, <span class="dv">1</span>)</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>var <span class="ot">&lt;-</span> NGA_wp[<span class="st">"pct_functional"</span>] <span class="sc">%&gt;%</span></span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_set_geometry</span>(<span class="cn">NULL</span>) <span class="co">#drop away all the geometric fields</span></span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="fu">quantile</span>(var[,<span class="dv">1</span>], percent)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create custom classification &amp; extracting vals</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>percent <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">0</span>, .<span class="dv">01</span>, .<span class="dv">1</span>, .<span class="dv">5</span>, .<span class="dv">9</span>, .<span class="dv">99</span>, <span class="dv">1</span>)</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>var <span class="ot">&lt;-</span> NGA_wp[<span class="st">"pct_functional"</span>] <span class="sc">%&gt;%</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_set_geometry</span>(<span class="cn">NULL</span>) <span class="co">#drop away all the geometric fields</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="fu">quantile</span>(var[,<span class="dv">1</span>], percent)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>       0%        1%       10%       50%       90%       99%      100% 
 0.0000000 0.0000000 0.2169811 0.4791667 0.8611111 1.0000000 1.0000000 </code></pre>
 </div>
 </div>
+<p>Extract map plotting into a reusable function</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># function: extract out the data from df where variable name is vname</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="co"># where vname is a name, df is a dataframe)</span></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="co"># returns vector of values (without a col name</span></span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>get.var <span class="ot">&lt;-</span> <span class="cf">function</span>(vname, df) {</span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  v <span class="ot">&lt;-</span> df[vname] <span class="sc">%&gt;%</span></span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">st_set_geometry</span>(<span class="cn">NULL</span>)</span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>  v <span class="ot">&lt;-</span> <span class="fu">unname</span>(v[,<span class="dv">1</span>])</span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(v)</span>
-<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># function: extract a variable (vname) as a vector</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="co"># out of a s.f. dataframe (df)</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="co"># returns vector of values (without a col name</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>get.var <span class="ot">&lt;-</span> <span class="cf">function</span>(vname, df) {</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  v <span class="ot">&lt;-</span> df[vname] <span class="sc">%&gt;%</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">st_set_geometry</span>(<span class="cn">NULL</span>)</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>  v <span class="ot">&lt;-</span> <span class="fu">unname</span>(v[,<span class="dv">1</span>])</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(v)</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>percentmap <span class="ot">&lt;-</span> <span class="cf">function</span>(vnam, df, <span class="at">legtitle=</span><span class="cn">NA</span>, <span class="at">mtitle=</span><span class="st">"Percentile Map"</span>) {</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  percent <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">0</span>, .<span class="dv">01</span>, .<span class="dv">1</span>, .<span class="dv">5</span>, .<span class="dv">9</span>, .<span class="dv">99</span>, <span class="dv">1</span>)</span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  var <span class="ot">&lt;-</span> <span class="fu">get.var</span>(vnam, df)</span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  bperc <span class="ot">&lt;-</span> <span class="fu">quantile</span>(var, percent)</span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_shape</span>(df) <span class="sc">+</span></span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">tm_polygons</span>() <span class="sc">+</span></span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">tm_shape</span>(df) <span class="sc">+</span></span>
-<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">tm_fill</span>(vnam,</span>
-<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>            <span class="at">title=</span>legtitle,</span>
-<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>            <span class="at">breaks=</span>bperc,</span>
-<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>            <span class="at">palette=</span><span class="st">"Blues"</span>,</span>
-<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>            <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"&lt; 1%"</span>, <span class="st">"1% - 10%"</span>, <span class="st">"10% - 50%"</span>, <span class="st">"50% - 90%"</span>, <span class="st">"90% - 99%"</span>, <span class="st">"&gt;99%"</span>)) <span class="sc">+</span></span>
-<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_borders</span>() <span class="sc">+</span></span>
-<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">tm_layout</span>(<span class="at">main.title =</span> mtitle,</span>
-<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>              <span class="at">title.position =</span> <span class="fu">c</span>(<span class="st">"right"</span>, <span class="st">"bottom"</span>),</span>
-<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>              <span class="at">legend.outside =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>percentmap <span class="ot">&lt;-</span> <span class="cf">function</span>(vnam, df, <span class="at">legtitle=</span><span class="cn">NA</span>, <span class="at">mtitle=</span><span class="st">"Percentile Map"</span>) {</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  percent <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">0</span>, .<span class="dv">01</span>, .<span class="dv">1</span>, .<span class="dv">5</span>, .<span class="dv">9</span>, .<span class="dv">99</span>, <span class="dv">1</span>)</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  var <span class="ot">&lt;-</span> <span class="fu">get.var</span>(vnam, df)</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  bperc <span class="ot">&lt;-</span> <span class="fu">quantile</span>(var, percent)</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_shape</span>(df) <span class="sc">+</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">tm_polygons</span>() <span class="sc">+</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">tm_shape</span>(df) <span class="sc">+</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">tm_fill</span>(vnam,</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>            <span class="at">title=</span>legtitle,</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>            <span class="at">breaks=</span>bperc,</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>            <span class="at">palette=</span><span class="st">"Blues"</span>,</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>            <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"&lt; 1%"</span>, <span class="st">"1% - 10%"</span>, <span class="st">"10% - 50%"</span>, <span class="st">"50% - 90%"</span>, <span class="st">"90% - 99%"</span>, <span class="st">"&gt;99%"</span>)) <span class="sc">+</span></span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_borders</span>() <span class="sc">+</span></span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">tm_layout</span>(<span class="at">main.title =</span> mtitle,</span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>              <span class="at">title.position =</span> <span class="fu">c</span>(<span class="st">"right"</span>, <span class="st">"bottom"</span>),</span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>              <span class="at">legend.outside =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">percentmap</span> (<span class="st">"pct_functional"</span>, NGA_wp)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">percentmap</span> (<span class="st">"pct_functional"</span>, NGA_wp)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="ICE_Wk3_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid" width="672"></p>
+<p><img src="ICE_Wk3_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 </section>
@@ -359,17 +382,88 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <section id="boxplot" class="level2">
 <h2 class="anchored" data-anchor-id="boxplot">BoxPlot</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> NGA_wp, <span class="fu">aes</span>(<span class="at">x=</span><span class="st">""</span>, <span class="at">y=</span>wp_nonfunctional)) <span class="sc">+</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> NGA_wp, <span class="fu">aes</span>(<span class="at">x=</span><span class="st">""</span>, <span class="at">y=</span>wp_nonfunctional)) <span class="sc">+</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="ICE_Wk3_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid" width="672"></p>
+<p><img src="ICE_Wk3_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 </section>
 <section id="boxmap" class="level2">
 <h2 class="anchored" data-anchor-id="boxmap">BoxMap</h2>
 <div class="cell">
-
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Creates break points for box map</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>boxbreaks <span class="ot">&lt;-</span> <span class="cf">function</span>(v,<span class="at">mult=</span><span class="fl">1.5</span>) {</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  qv <span class="ot">&lt;-</span> <span class="fu">unname</span>(<span class="fu">quantile</span>(v))</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  iqr <span class="ot">&lt;-</span> qv[<span class="dv">4</span>] <span class="sc">-</span> qv[<span class="dv">2</span>]</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>  upfence <span class="ot">&lt;-</span> qv[<span class="dv">4</span>] <span class="sc">+</span> mult <span class="sc">*</span> iqr</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>  lofence <span class="ot">&lt;-</span> qv[<span class="dv">2</span>] <span class="sc">-</span> mult <span class="sc">*</span> iqr</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>  <span class="co"># initialize break points vector</span></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>  bb <span class="ot">&lt;-</span> <span class="fu">vector</span>(<span class="at">mode=</span><span class="st">"numeric"</span>,<span class="at">length=</span><span class="dv">7</span>)</span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>  <span class="co"># logic for lower and upper fences</span></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (lofence <span class="sc">&lt;</span> qv[<span class="dv">1</span>]) {  <span class="co"># no lower outliers</span></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>    bb[<span class="dv">1</span>] <span class="ot">&lt;-</span> lofence</span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>    bb[<span class="dv">2</span>] <span class="ot">&lt;-</span> <span class="fu">floor</span>(qv[<span class="dv">1</span>])</span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>    bb[<span class="dv">2</span>] <span class="ot">&lt;-</span> lofence</span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>    bb[<span class="dv">1</span>] <span class="ot">&lt;-</span> qv[<span class="dv">1</span>]</span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (upfence <span class="sc">&gt;</span> qv[<span class="dv">5</span>]) { <span class="co"># no upper outliers</span></span>
+<span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a>    bb[<span class="dv">7</span>] <span class="ot">&lt;-</span> upfence</span>
+<span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a>    bb[<span class="dv">6</span>] <span class="ot">&lt;-</span> <span class="fu">ceiling</span>(qv[<span class="dv">5</span>])</span>
+<span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
+<span id="cb17-21"><a href="#cb17-21" aria-hidden="true" tabindex="-1"></a>    bb[<span class="dv">6</span>] <span class="ot">&lt;-</span> upfence</span>
+<span id="cb17-22"><a href="#cb17-22" aria-hidden="true" tabindex="-1"></a>    bb[<span class="dv">7</span>] <span class="ot">&lt;-</span> qv[<span class="dv">5</span>]</span>
+<span id="cb17-23"><a href="#cb17-23" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb17-24"><a href="#cb17-24" aria-hidden="true" tabindex="-1"></a>  bb[<span class="dv">3</span><span class="sc">:</span><span class="dv">5</span>] <span class="ot">&lt;-</span> qv[<span class="dv">2</span><span class="sc">:</span><span class="dv">4</span>]</span>
+<span id="cb17-25"><a href="#cb17-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(bb)</span>
+<span id="cb17-26"><a href="#cb17-26" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>var <span class="ot">&lt;-</span> <span class="fu">get.var</span>(<span class="st">"wp_nonfunctional"</span>, NGA_wp) </span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="fu">boxbreaks</span>(var)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -56.5   0.0  14.0  34.0  61.0 131.5 278.0</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Function to create Boxmap</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>boxmap <span class="ot">&lt;-</span> <span class="cf">function</span>(vnam, df, </span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>                   <span class="at">legtitle=</span><span class="cn">NA</span>,</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>                   <span class="at">mtitle=</span><span class="st">"Box Map"</span>,</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>                   <span class="at">mult=</span><span class="fl">1.5</span>){</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>  var <span class="ot">&lt;-</span> <span class="fu">get.var</span>(vnam,df)</span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>  bb <span class="ot">&lt;-</span> <span class="fu">boxbreaks</span>(var)</span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_shape</span>(df) <span class="sc">+</span></span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">tm_polygons</span>() <span class="sc">+</span></span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_shape</span>(df) <span class="sc">+</span></span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>     <span class="fu">tm_fill</span>(vnam,<span class="at">title=</span>legtitle,</span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>             <span class="at">breaks=</span>bb,</span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a>             <span class="at">palette=</span><span class="st">"Blues"</span>,</span>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a>          <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"lower outlier"</span>, </span>
+<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a>                     <span class="st">"&lt; 25%"</span>, </span>
+<span id="cb20-16"><a href="#cb20-16" aria-hidden="true" tabindex="-1"></a>                     <span class="st">"25% - 50%"</span>, </span>
+<span id="cb20-17"><a href="#cb20-17" aria-hidden="true" tabindex="-1"></a>                     <span class="st">"50% - 75%"</span>,</span>
+<span id="cb20-18"><a href="#cb20-18" aria-hidden="true" tabindex="-1"></a>                     <span class="st">"&gt; 75%"</span>, </span>
+<span id="cb20-19"><a href="#cb20-19" aria-hidden="true" tabindex="-1"></a>                     <span class="st">"upper outlier"</span>))  <span class="sc">+</span></span>
+<span id="cb20-20"><a href="#cb20-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_borders</span>() <span class="sc">+</span></span>
+<span id="cb20-21"><a href="#cb20-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_layout</span>(<span class="at">main.title =</span> mtitle, </span>
+<span id="cb20-22"><a href="#cb20-22" aria-hidden="true" tabindex="-1"></a>            <span class="at">title.position =</span> <span class="fu">c</span>(<span class="st">"left"</span>,</span>
+<span id="cb20-23"><a href="#cb20-23" aria-hidden="true" tabindex="-1"></a>                               <span class="st">"top"</span>))</span>
+<span id="cb20-24"><a href="#cb20-24" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_mode</span>(<span class="st">"plot"</span>)</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="fu">boxmap</span>(<span class="st">"wp_nonfunctional"</span>, NGA_wp)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="ICE_Wk3_files/figure-html/unnamed-chunk-19-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Recode LGAs with 0 wp to NA</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>NGA_wp <span class="ot">&lt;-</span> NGA_wp <span class="sc">%&gt;%</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">wp_functional =</span> <span class="fu">na_if</span>(</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>    total_wp, total_wp <span class="sc">&lt;</span> <span class="dv">0</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 
 

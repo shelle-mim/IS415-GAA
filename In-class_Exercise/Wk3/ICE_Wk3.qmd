@@ -2,7 +2,6 @@
 title: In-Class Exercise 3
 date: "25 Jan 2023"
 date-modified: "`r Sys.Date()`"
-code-block-bg: "#e8e8df"
 format: html
 execute: 
   message: false
@@ -22,6 +21,8 @@ pacman::p_load(sf, tmap, tidyverse)
 NGA_wp = read_rds("data/rds/NGA_wp.rds")
 ```
 
+## Plot Choropleth Maps
+
 ```{r}
 p1 <- tm_shape(NGA_wp) +
   tm_fill("wp_functional",
@@ -32,6 +33,10 @@ p1 <- tm_shape(NGA_wp) +
              alpha = 1) + #opacity/transparency
   tm_layout(main.title = "Distribution of functional water points",
             legend.outside = FALSE)
+```
+
+```{r}
+tmap_style("albatross")
 ```
 
 ```{r}
@@ -61,6 +66,19 @@ NGA_wp <- NGA_wp %>%
   mutate(pct_nonfunctional = wp_nonfunctional/total_wp)
 ```
 
+```{r}
+tm_shape(NGA_wp) +
+  tm_fill("pct_functional",
+          n = 10,
+          style = "equal",
+          palette = "Blues",
+          legend.hist = TRUE) +
+  tm_borders(lwd = 0.1,
+             alpha = 1) +
+  tm_layout(main.title = "Rate map of functional water point by LGAs",
+            legend.outside = TRUE)
+```
+
 ## Extreme Value Maps
 
 ### Percentile map: special type of quantile map
@@ -68,7 +86,7 @@ NGA_wp <- NGA_wp %>%
 Create a classification scheme (including of beginning and end)
 
 ```{r}
-# Excluse NA records
+# Exclusde NA records
 NGA_wp <- NGA_wp %>%
   drop_na()
 ```
@@ -81,9 +99,11 @@ var <- NGA_wp["pct_functional"] %>%
 quantile(var[,1], percent)
 ```
 
+Extract map plotting into a reusable function
+
 ```{r}
-# function: extract out the data from df where variable name is vname
-# where vname is a name, df is a dataframe)
+# function: extract a variable (vname) as a vector
+# out of a s.f. dataframe (df)
 # returns vector of values (without a col name
 get.var <- function(vname, df) {
   v <- df[vname] %>%
@@ -127,5 +147,74 @@ ggplot(data = NGA_wp, aes(x="", y=wp_nonfunctional)) +
 ## BoxMap
 
 ```{r}
+# Creates break points for box map
+boxbreaks <- function(v,mult=1.5) {
+  qv <- unname(quantile(v))
+  iqr <- qv[4] - qv[2]
+  upfence <- qv[4] + mult * iqr
+  lofence <- qv[2] - mult * iqr
+  # initialize break points vector
+  bb <- vector(mode="numeric",length=7)
+  # logic for lower and upper fences
+  if (lofence < qv[1]) {  # no lower outliers
+    bb[1] <- lofence
+    bb[2] <- floor(qv[1])
+  } else {
+    bb[2] <- lofence
+    bb[1] <- qv[1]
+  }
+  if (upfence > qv[5]) { # no upper outliers
+    bb[7] <- upfence
+    bb[6] <- ceiling(qv[5])
+  } else {
+    bb[6] <- upfence
+    bb[7] <- qv[5]
+  }
+  bb[3:5] <- qv[2:4]
+  return(bb)
+}
+```
 
+```{r}
+var <- get.var("wp_nonfunctional", NGA_wp) 
+boxbreaks(var)
+```
+
+```{r}
+# Function to create Boxmap
+boxmap <- function(vnam, df, 
+                   legtitle=NA,
+                   mtitle="Box Map",
+                   mult=1.5){
+  var <- get.var(vnam,df)
+  bb <- boxbreaks(var)
+  tm_shape(df) +
+    tm_polygons() +
+  tm_shape(df) +
+     tm_fill(vnam,title=legtitle,
+             breaks=bb,
+             palette="Blues",
+          labels = c("lower outlier", 
+                     "< 25%", 
+                     "25% - 50%", 
+                     "50% - 75%",
+                     "> 75%", 
+                     "upper outlier"))  +
+  tm_borders() +
+  tm_layout(main.title = mtitle, 
+            title.position = c("left",
+                               "top"))
+}
+```
+
+```{r}
+tmap_mode("plot")
+boxmap("wp_nonfunctional", NGA_wp)
+```
+
+```{r}
+# Recode LGAs with 0 wp to NA
+NGA_wp <- NGA_wp %>%
+  mutate(wp_functional = na_if(
+    total_wp, total_wp < 0))
 ```
