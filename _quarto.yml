@@ -11,6 +11,8 @@ website:
             href: "Hands-on_Exercise/Wk2/HOE_Wk2.qmd"
           - text: "Hands-on Exercise 3"
             href: "Hands-on_Exercise/Wk3/HOE_Wk3.qmd"
+          - text: "Hands-on Exercise 4"
+            href: "Hands-on_Exercise/Wk4/HOE_Wk4.qmd"
       - text: "In-class Exercise"
         menu:
           - text: "In-Class Exercise 1"
