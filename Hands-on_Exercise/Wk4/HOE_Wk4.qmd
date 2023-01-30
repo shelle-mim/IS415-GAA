@@ -1,5 +1,6 @@
 ---
-title: Hands-On Exercise 4
+title: "In-Class Exercise 4: Spatial Point Patterns Analysis"
+subtitle: "Alt: Hands-On Exercise 4 & 5 - Spatial Point Patterns Analysis"
 date: "29 Jan 2023"
 date-modified: "`r Sys.Date()`"
 format: html
@@ -186,9 +187,9 @@ summary(childcareSG_ppp)
 plot(childcareSG_ppp)
 ```
 
-## First-order Spatial Point Pattern Analysis
+# First-Order Spatial Point Pattern Analysis
 
-### Kernel Density Estimation
+## Kernel Density Estimation
 
 ```{r}
 # bw.diggle = automatic bandwith selection. can also use bw.CvL(), bw.scott(), bw.ppl()
@@ -459,4 +460,56 @@ clarkevans.test(childcare_tm_ppp,
                 clipregion=NULL,
                 alternative=c("two.sided"),
                 nsim=999)
+```
+
+# Second-Order Spatial Point Pattern Analysis
+
+## G Function
+
+```{r}
+# Compute G-function using Gest() 
+G_CK = Gest(childcare_ck_ppp, correction = "border")
+plot(G_CK, xlim=c(0,500))
+```
+
+```{r}
+# Monte Carlo test with G-function
+G_CK.csr <- envelope(childcare_ck_ppp, Gest, nsim = 999)
+```
+
+```{r}
+plot(G_CK.csr)
+```
+
+```{r}
+# Compute G-func for Tamp
+G_tm = Gest(childcare_tm_ppp, correction = "best")
+plot(G_tm)
+```
+
+```{r}
+# Monte-Carole Test: Hypo test for random distribution in Tamp (H0=rand, H1=not rand)
+G_tm.csr <- envelope(childcare_tm_ppp, Gest, correction = "all", nsim = 999)
+```
+
+```{r}
+plot(G_tm.csr)
+```
+
+## F Function
+
+```{r}
+# Compute F-func on CCK
+F_CK = Fest(childcare_ck_ppp)
+plot(F_CK)
+```
+
+```{r}
+# Monte-Carole Test: Hypo testing for randomness (H0=rand, H1=not rand)
+F_CK.csr <- envelope(childcare_ck_ppp, Fest, nsim = 999)
+```
+
+```{r}
+# Plot results => lies within envelope, so can conclude is random (H0)
+plot(F_CK.csr)
 ```
