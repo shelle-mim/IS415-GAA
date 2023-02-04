@@ -1,0 +1,217 @@
+---
+title: Take-Home Exercise 1
+date: "30 Jan 2023"
+date-modified: "`r Sys.Date()`"
+format: html
+execute: 
+  message: false
+  warning: false
+editor: visual
+---
+
+# Installing Packages
+
+```{r}
+pacman::p_load(sf, tidyverse, funModeling, tmap, maptools, tmap)
+```
+
+# Importing the Data
+
+## Import Geospatial Data
+
+### **GeoBoundaries data set**
+
+```{r}
+geoNGA = st_read(dsn = "data/geospatial",
+                  layer = "geoBoundaries-NGA-ADM2") %>%
+  st_transform(crs = 26392)
+```
+
+```{r}
+head(geoNGA, n=3)
+```
+
+### **NGA data set**
+
+```{r}
+NGA <- st_read("data/geospatial/",
+               layer = "nga_admbnda_adm2") %>%
+  st_transform(crs = 26392) # transform to PCS of Nigeria
+```
+
+```{r}
+head(NGA, n=3)
+```
+
+## Import Aspatial Data
+
+```{r}
+wp_nga <- read_csv("data/aspatial/WPDEx.csv") %>%
+  filter(`#clean_country_name` == "Nigeria") #remove irrelavent data, keep the data small
+```
+
+## Convert Aspatial to Geospatial
+
+```{r}
+# use log and lat to make georeference col
+wp_nga$Geometry = st_as_sfc(wp_nga$`New Georeferenced Column`)
+head(wp_nga)
+```
+
+```{r}
+wp_sf <- st_sf(wp_nga, crs=4326)
+wp_sf
+```
+
+## Projection Transformation
+
+```{r}
+# Transform to appropriate projected coordinate system of Nigeria
+wp_sf <- wp_sf %>%
+  st_transform(crs = 26392)
+```
+
+## Data Cleaning
+
+### Select relevant cols
+
+```{r}
+# select adm1 and adm2 cols (cols 3-4 and 8-9)
+NGA <- NGA %>%
+  select(c(3:4, 8:9))
+```
+
+### Check for and Remove Duplicate Names
+
+```{r}
+NGA$ADM2_EN[duplicated(NGA$ADM2_EN)==TRUE]
+```
+
+=\> shows LGAs with the same name
+
+```{r}
+duplicated_LGA <- NGA$ADM2_EN[duplicated(NGA$ADM2_EN)==TRUE]
+
+duplicated_indices <- which(NGA$ADM2_EN %in% duplicated_LGA)
+
+for (ind in duplicated_indices) {
+  NGA$ADM2_EN[ind] <- paste(NGA$ADM2_EN[ind], NGA$ADM1_EN[ind], sep=", ")
+}
+```
+
+## Data Wrangling
+
+```{r}
+# Look at distribution of the data
+freq(data = wp_sf, input='#status_clean')
+```
+
+```{r}
+wp_sf_nga <- wp_sf %>%
+  rename(status_clean = '#status_clean') %>%
+  select(status_clean) %>%
+  mutate(status_clean = replace_na(
+    status_clean, "unknown"
+  ))
+```
+
+```{r}
+wp_functional_sf <- wp_sf_nga %>%
+  filter(status_clean %in%
+           c("Functional",
+             "Functional but not in use",
+             "Functional but needs repair"))
+```
+
+```{r}
+wp_nonfunctional_sf <- wp_sf_nga %>%
+  filter(status_clean %in%
+           c("Abandoned/Decommissioned",
+             "Abandoned",
+             "Non-Functional due to dry season",
+             "Non-Functional",
+             "Non functional due to dry season"))
+```
+
+```{r}
+wp_unknown_sf <- wp_sf_nga %>% filter(`status_clean` %in% 
+                                     c("unknown"))
+```
+
+```{r}
+NGA_wp_sf <- NGA %>%
+  mutate(`total_wp` = lengths(
+    st_intersects(NGA, wp_sf_nga)
+  )) %>%
+  mutate(`wp_functional_sf` = lengths(
+    st_intersects(NGA, wp_functional_sf)
+  )) %>%
+  mutate(`wp_nonfunctional_sf` = lengths(
+    st_intersects(NGA, wp_nonfunctional_sf)
+  )) %>%
+  mutate(`wp_unknown_sf` = lengths(
+    st_intersects(NGA, wp_unknown_sf)
+  ))
+```
+
+```{r}
+glimpse(NGA)
+```
+
+```{r}
+glimpse(NGA_wp_sf)
+```
+
+```{r}
+write_rds(NGA_wp_sf, "data/rds/NGA_wp_sf.rds")
+```
+
+## Creating the map
+
+plot data
+
+```{r}
+# Convert sf to sp's spatial class
+wp_functional_spatial <- as_Spatial(wp_functional_sf)
+wp_nonfunctional_spatial <- as_Spatial(wp_nonfunctional_sf)
+```
+
+```{r}
+wp_functional_spatial
+```
+
+```{r}
+wp_functional_sp <- as(wp_functional_spatial, "SpatialPoints")
+wp_nonfunctional_sp <- as(wp_nonfunctional_spatial, "SpatialPoints")
+```
+
+```{r}
+wp_functional_sp
+```
+
+```{r}
+wp_functional_ppp <- as(wp_functional_sp, "ppp")
+wp_nonfunctional_ppp <- as(wp_nonfunctional_sp, "ppp")
+```
+
+```{r}
+wp_functional_ppp
+```
+
+```{r}
+plot(wp_functional_ppp)
+```
+
+```{r}
+#wp <- as_Spatial(wp_sf_nga)
+#wp_sp <- as(wp, "SpatialPoints")
+#wp_ppp <- as(wp_sp, "ppp")
+```
+
+handle duplicated points
+
+make owin of osun to contain data within
+
+make into gridobject, then into raster
+
+display with tmap
