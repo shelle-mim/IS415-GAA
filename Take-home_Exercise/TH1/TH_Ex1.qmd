@@ -12,7 +12,7 @@ editor: visual
 # Installing Packages
 
 ```{r}
-pacman::p_load(sf, tidyverse, funModeling, tmap, maptools, tmap)
+pacman::p_load(sf, tidyverse, funModeling, tmap, maptools, tmap, raster, spatstat)
 ```
 
 # Importing the Data
@@ -78,7 +78,7 @@ wp_sf <- wp_sf %>%
 ```{r}
 # select adm1 and adm2 cols (cols 3-4 and 8-9)
 NGA <- NGA %>%
-  select(c(3:4, 8:9))
+  dplyr::select(c(3:4, 8:9))
 ```
 
 ### Check for and Remove Duplicate Names
@@ -103,13 +103,13 @@ for (ind in duplicated_indices) {
 
 ```{r}
 # Look at distribution of the data
-freq(data = wp_sf, input='#status_clean')
+#freq(data = wp_sf, input='#status_clean')
 ```
 
 ```{r}
 wp_sf_nga <- wp_sf %>%
   rename(status_clean = '#status_clean') %>%
-  select(status_clean) %>%
+  dplyr::select(status_clean) %>%
   mutate(status_clean = replace_na(
     status_clean, "unknown"
   ))
@@ -159,6 +159,13 @@ glimpse(NGA)
 ```
 
 ```{r}
+osun <- NGA %>%
+  filter(ADM1_EN %in%
+           c("Osun"))
+qtm(osun)
+```
+
+```{r}
 glimpse(NGA_wp_sf)
 ```
 
@@ -166,14 +173,17 @@ glimpse(NGA_wp_sf)
 write_rds(NGA_wp_sf, "data/rds/NGA_wp_sf.rds")
 ```
 
-## Creating the map
+# Exploratory Spatial Data Analysis
 
-plot data
+## Derive Kernel Density Maps
+
+### Conversion to ppp data type
 
 ```{r}
 # Convert sf to sp's spatial class
 wp_functional_spatial <- as_Spatial(wp_functional_sf)
 wp_nonfunctional_spatial <- as_Spatial(wp_nonfunctional_sf)
+osun_spatial <- as_Spatial(osun)
 ```
 
 ```{r}
@@ -181,8 +191,13 @@ wp_functional_spatial
 ```
 
 ```{r}
+osun_spatial
+```
+
+```{r}
 wp_functional_sp <- as(wp_functional_spatial, "SpatialPoints")
 wp_nonfunctional_sp <- as(wp_nonfunctional_spatial, "SpatialPoints")
+osun_sp <- as(osun_spatial, "SpatialPolygons")
 ```
 
 ```{r}
@@ -202,16 +217,178 @@ wp_functional_ppp
 plot(wp_functional_ppp)
 ```
 
+### Check for/Deal with duplicated points
+
 ```{r}
-#wp <- as_Spatial(wp_sf_nga)
-#wp_sp <- as(wp, "SpatialPoints")
-#wp_ppp <- as(wp_sp, "ppp")
+any(duplicated(wp_functional_ppp))
 ```
 
-handle duplicated points
+```{r}
+any(duplicated(wp_nonfunctional_ppp))
+```
 
-make owin of osun to contain data within
+Since there are no duplicated points, no further action needed.
 
-make into gridobject, then into raster
+### Create Owin of Osun
 
-display with tmap
+Create Owin to bound data within
+
+```{r}
+osun_owin <- as(osun_sp, "owin")
+```
+
+```{r}
+plot(osun_owin)
+```
+
+```{r}
+wp_functional_osun_ppp = wp_functional_ppp[osun_owin]
+wp_nonfunctional_osun_ppp = wp_nonfunctional_ppp[osun_owin]
+```
+
+```{r}
+plot(wp_functional_osun_ppp)
+```
+
+```{r}
+plot(wp_nonfunctional_osun_ppp)
+```
+
+### Kernel Density Estimation
+
+```{r}
+# Convert to km
+wp_func_osun_ppp_km <- rescale(wp_functional_osun_ppp, 1000, "km")
+wp_nonfunc_osun_ppp_km <- rescale(wp_nonfunctional_osun_ppp, 1000, "km")
+```
+
+```{r}
+# Choosing automatic bandwith method
+par(mfrow=c(2,2))
+plot(density(wp_func_osun_ppp_km,
+             sigma=bw.CvL,
+             edge=TRUE,
+             kernel="gaussian"))
+plot(density(wp_func_osun_ppp_km,
+             sigma=bw.scott,
+             edge=TRUE,
+             kernel="gaussian"))
+plot(density(wp_func_osun_ppp_km,
+             sigma=bw.diggle,
+             edge=TRUE,
+             kernel="gaussian"))
+plot(density(wp_func_osun_ppp_km,
+             sigma=bw.ppl,
+             edge=TRUE,
+             kernel="gaussian"))
+```
+
+Will choose bw.ppl, since we appear to be working with predominately tight clusters, and bw.ppl and bw.diggle give more appropriate values when such is the case. I chose bw.ppl as it shows up better than bw.diggle, which is slightly difficult to see.
+
+```{r}
+# Choosing kernel method
+par(mfrow=c(2,2))
+plot(density(wp_func_osun_ppp_km, 
+             sigma=bw.ppl, 
+             edge=TRUE, 
+             kernel="gaussian"), 
+     main="Gaussian")
+plot(density(wp_func_osun_ppp_km, 
+             sigma=bw.ppl, 
+             edge=TRUE, 
+             kernel="epanechnikov"), 
+     main="Epanechnikov")
+plot(density(wp_func_osun_ppp_km, 
+             sigma=bw.ppl, 
+             edge=TRUE, 
+             kernel="quartic"), 
+     main="Quartic")
+plot(density(wp_func_osun_ppp_km, 
+             sigma=bw.ppl, 
+             edge=TRUE, 
+             kernel="disc"), 
+     main="Disc")
+```
+
+Since there are no significant differences observed across different kernels, we will use guassian kernel, the default kernel method.
+
+```{r}
+par(mfrow=c(1,2))
+# Try adaptive bandwith
+# each datapoint have its own threshold => tends to be more pixelised
+plot( adaptive.density(wp_func_osun_ppp_km, method="voronoi"))
+
+# define diff num of neighbour you want, and calc distance until converge => tends to be smoother
+plot( adaptive.density(wp_func_osun_ppp_km, method="kernel"))
+```
+
+Adaptive also does not give good results, so will use fixed with bw.ppl and guassian kernel.
+
+```{r}
+kde_wp_func_bw_ppl <- density(wp_func_osun_ppp_km, 
+                               sigma=bw.ppl, 
+                               edge=TRUE,
+                               kernel="gaussian")
+kde_wp_nonfunc_bw_ppl <- density(wp_nonfunc_osun_ppp_km, 
+                               sigma=bw.ppl, 
+                               edge=TRUE,
+                               kernel="gaussian")
+```
+
+### Final Kernel Density Estimation Maps
+
+```{r}
+par(mfrow=c(1,2))
+plot(kde_wp_func_bw_ppl)
+plot(kde_wp_nonfunc_bw_ppl)
+```
+
+## Display KDE Maps on OpenStreetMap
+
+### Convert to raster for tmap display
+
+```{r}
+# Convert to Gridded, then to raster
+gridded_kde_wp_func_bw_ppl <- as.SpatialGridDataFrame.im(kde_wp_func_bw_ppl)
+gridded_kde_wp_nonfunc_bw_ppl <- as.SpatialGridDataFrame.im(kde_wp_nonfunc_bw_ppl)
+
+raster_kde_wp_func_bw_ppl <- raster(gridded_kde_wp_func_bw_ppl)
+raster_kde_wp_nonfunc_bw_ppl <- raster(gridded_kde_wp_nonfunc_bw_ppl)
+
+# Assign CRS info
+projection(raster_kde_wp_func_bw_ppl) <- CRS("+init=EPSG:26392 +units=km")
+projection(raster_kde_wp_nonfunc_bw_ppl) <- CRS("+init=EPSG:26392 +units=km")
+
+raster_kde_wp_func_bw_ppl
+```
+
+### Display on tmap OpenStreetMap
+
+```{r}
+tmap_mode('view')
+
+#func_kde <- 
+tm_basemap("OpenStreetMap")+
+  tm_view(set.zoom.limits=c(9, 16)) +
+  tm_shape(raster_kde_wp_func_bw_ppl) + 
+  tm_raster("v", palette="YlOrRd") +
+  tm_layout(legend.position = c("right", "bottom"), frame = FALSE)
+
+#nonfunc_kde <- 
+tm_basemap("OpenStreetMap")+
+  tm_view(set.zoom.limits=c(9, 16)) +
+  tm_shape(raster_kde_wp_nonfunc_bw_ppl) + 
+  tm_raster("v", palette="YlOrRd") +
+  tm_layout(legend.position = c("right", "bottom"), frame = FALSE)
+
+# tmap_arrange(func_kde, nonfunc_kde, asp=1, ncol=2)
+```
+
+## Describe Spatial Patterns
+
+nigeria no water :(
+
+# Second-order Spatial Point Pattern Analysis
+
+```{r}
+```

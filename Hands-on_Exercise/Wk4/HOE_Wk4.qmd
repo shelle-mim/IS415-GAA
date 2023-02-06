@@ -67,8 +67,10 @@ tm_shape(mpsz_sf) +
 ```{r}
 # Interactive Map
 tmap_mode('view')
-tm_shape(childcare_sf)+
-  tm_dots()
+tm_basemap("OpenStreetMap")+
+  tm_view(set.zoom.limits=c(11, 16)) +
+  tm_shape(childcare_sf)+
+  tm_dots(alpha=0.5)
 ```
 
 ```{r}
