@@ -36,7 +36,7 @@ website:
 
 format:
   html:
-    theme: vapor
+    theme: journal
     css: styles.css
     toc: true
 
