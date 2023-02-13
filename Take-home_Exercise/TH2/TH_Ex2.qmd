@@ -1,0 +1,13 @@
+---
+title: "Take-Home Exercise 2: Spatio-temporal Analysis of COVID-19 Vaccination Trends in DKI Jakarta"
+author: "Michelle Leong Hwee-Ling"
+date: "13 Feb 2023"
+date-modified: "`r Sys.Date()`"
+format: html
+execute: 
+  message: false
+  warning: false
+editor: visual
+---
+
+take first day to first day or last day to last day

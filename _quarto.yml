@@ -33,6 +33,8 @@ website:
         menu:
           - text: "Take-home Ex1"
             href: "Take-home_Exercise/TH1/TH_Ex1.qmd"
+          - text: "Take-home Ex2"
+            href: "Take-home_Exercise/TH2/TH_Ex2.qmd"
     right:
       - href: index.qmd
         text: Home

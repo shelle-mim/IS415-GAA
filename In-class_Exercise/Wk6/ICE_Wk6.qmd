@@ -14,7 +14,87 @@ editor: visual
 ## Import Packages
 
 ```{r}
-pacman::p_load(sf, tmap, sfdep, tidyverse)
+pacman::p_load(sf, sfdep, tmap, tidyverse)
 ```
 
 ## Import Data
+
+### Geospatial
+
+```{r}
+hunan <- st_read(dsn = "data/geospatial", 
+                 layer = "Hunan")
+```
+
+### Aspatial
+
+```{r}
+hunan2012 <- read_csv("data/aspatial/Hunan_2012.csv")
+```
+
+### Join Data
+
+```{r}
+# Left relational join
+hunan_GDPPC <- left_join(hunan, hunan2012)%>%
+  select(1:4, 7, 15)
+```
+
+# Exploring the data
+
+## Choropleth Map
+
+```{r}
+tm_shape(hunan_GDPPC)+
+  tm_fill("GDPPC", 
+          style = "quantile", 
+          palette = "RdPu",
+          title = "Dependency ratio") +
+  tm_layout(main.title = "Distribution of GDP per capita by district, Hunan Province",
+            main.title.position = "center",
+            main.title.size = 1,
+            legend.outside = TRUE,
+            frame = TRUE) +
+  tm_borders(alpha = 0.5) +
+  tm_grid(alpha =0.2) +
+  tm_compass(type="8star", size = 2) +
+  tm_scale_bar()
+```
+
+# Identify Area Neighbours
+
+## Contiguity Neighbours Method (Adjacency Method)
+
+```{r}
+# Using queen's method
+cn_queen <- hunan_GDPPC %>%
+  mutate(nb = st_contiguity(geometry), 
+         .before = 1) # puts newly created field as first col
+```
+
+```{r}
+# Using rook's method
+cn_rook <- hunan_GDPPC %>%
+  mutate(nb = st_contiguity(geometry), queen = FALSE, .before = 1)
+```
+
+## Computing contiguity weights
+
+```{r}
+# Queen's
+wm_q <- hunan_GDPPC %>%
+  mutate(nb = st_contiguity(geometry), 
+         wt = st_weights(nb),
+         .before = 1)
+```
+
+```{r}
+# Rook's
+wm_r <- hunan_GDPPC %>%
+  mutate(nb = st_contiguity(geometry), 
+         queen = FALSE,
+         wt = st_weights(nb),
+         .before = 1)
+```
+
+## Distance based method

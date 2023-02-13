@@ -1,0 +1,54 @@
+---
+title: "Hands-On Exercise 6: Spatial Weights & Applications"
+date: "13 Feb 2023"
+date-modified: "`r Sys.Date()`"
+format: html
+execute: 
+  message: false
+  warning: false
+editor: visual
+---
+
+::: callout-caution
+This Hands-On Exercise is based spdep rather than sf.
+
+For In-Class Ex and Take Home Ex will use sf. This will cut down conversion form sf to sp.
+:::
+
+# Imports
+
+## Packages
+
+```{r}
+pacman::p_load(sf, spdep, tmap, tidyverse, knitr)
+```
+
+## Data
+
+```{r}
+hunan <- st_read(dsn = "data/geospatial", 
+                 layer = "Hunan")
+```
+
+```{r}
+hunan2012 <- read_csv("data/aspatial/Hunan_2012.csv")
+```
+
+```{r}
+# Relational join
+hunan <- left_join(hunan,hunan2012)%>%
+  select(1:4, 7, 15)
+```
+
+# Visualise Regional Development Indicator
+
+```{r}
+basemap <- tm_shape(hunan) +
+  tm_polygons() +
+  tm_text("NAME_3", size=0.5)
+
+gdppc <- qtm(hunan, "GDPPC")
+tmap_arrange(basemap, gdppc, asp=1, ncol=2)
+```
+
+# Computing Contiguity Spatial Weights
