@@ -13,6 +13,8 @@ website:
             href: "Hands-on_Exercise/Wk3/HOE_Wk3.qmd"
           - text: "Week 4 & 5"
             href: "Hands-on_Exercise/Wk4/HOE_Wk4.qmd"
+          - text: "Week 6"
+            href: "Hands-on_Exercise/Wk6/HOE_Wk6.qmd"
       - text: "In-class Exercise"
         menu:
           - text: "Week 1"
@@ -25,6 +27,8 @@ website:
             href: "Hands-on_Exercise/Wk4/HOE_Wk4.qmd"
           - text: "Week 5"
             href: "In-class_Exercise/Wk5/ICE_Wk5.qmd"
+          - text: "Week 6"
+            href: "In-class_Exercise/Wk6/ICE_Wk6.qmd"
       - text: "Take-home Exercise"
         menu:
           - text: "Take-home Ex1"

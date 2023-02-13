@@ -383,5 +383,33 @@
     "title": "In-Class Exercise 2",
     "section": "Visualization",
     "text": "Visualization\n\nggplot(data=NGA_wp,\n       aes(x=total_wp)) +\n  geom_histogram(bins=20,\n                 color=\"black\",\n                 fill=\"light blue\") +\n  geom_vline(aes(xintercept=mean(\n    total_wp, na.rm=T\n  )),\n  color=\"red\",\n  linetype=\"dashed\",\n  linewidth=0.8) +\n  ggtitle(\"Distribution of total water points by LGA\") +\n  xlab(\"No. of water points\") +\n  ylab(\"No. of\\nLGAs\") +\n  theme(axis.title.y=element_text(angle = 0))"
+  },
+  {
+    "objectID": "In-class_Exercise/Wk6/ICE_Wk6.html",
+    "href": "In-class_Exercise/Wk6/ICE_Wk6.html",
+    "title": "In-Class Exercise 6: Spatial Weights & Applications",
+    "section": "",
+    "text": "pacman::p_load(sf, tmap, sfdep, tidyverse)"
+  },
+  {
+    "objectID": "Hands-on_Exercise/Wk6/HOE_Wk6.html",
+    "href": "Hands-on_Exercise/Wk6/HOE_Wk6.html",
+    "title": "Hands-On Exercise 6: Spatial Weights & Applications",
+    "section": "",
+    "text": "Danger\n\n\n\nThis Hands-On Exercise is based spdep rather than sf.\nFor In-Class Ex and Take Home Ex will use sf. This will cut down conversion form sf to sp."
+  },
+  {
+    "objectID": "Hands-on_Exercise/Wk6/HOE_Wk6.html#packages",
+    "href": "Hands-on_Exercise/Wk6/HOE_Wk6.html#packages",
+    "title": "Hands-On Exercise 6: Spatial Weights & Applications",
+    "section": "Packages",
+    "text": "Packages\n\npacman::p_load(sf, spdep, tmap, tidyverse, knitr)"
+  },
+  {
+    "objectID": "Hands-on_Exercise/Wk6/HOE_Wk6.html#data",
+    "href": "Hands-on_Exercise/Wk6/HOE_Wk6.html#data",
+    "title": "Hands-On Exercise 6: Spatial Weights & Applications",
+    "section": "Data",
+    "text": "Data\n\nhunan <- st_read(dsn = \"data/geospatial\", \n                 layer = \"Hunan\")\n\nReading layer `Hunan' from data source \n  `/Users/michelle/Desktop/IS415/shelle-mim/IS415-GAA/Hands-on_Exercise/Wk6/data/geospatial' \n  using driver `ESRI Shapefile'\nSimple feature collection with 88 features and 7 fields\nGeometry type: POLYGON\nDimension:     XY\nBounding box:  xmin: 108.7831 ymin: 24.6342 xmax: 114.2544 ymax: 30.12812\nGeodetic CRS:  WGS 84\n\n\n\nhunan2012 <- read_csv(\"data/aspatial/Hunan_2012.csv\")\n\n\n# Relational join\nhunan <- left_join(hunan,hunan2012)%>%\n  select(1:4, 7, 15)"
   }
 ]
