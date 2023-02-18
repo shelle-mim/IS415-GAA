@@ -78,23 +78,121 @@ cn_rook <- hunan_GDPPC %>%
   mutate(nb = st_contiguity(geometry), queen = FALSE, .before = 1)
 ```
 
-## Computing contiguity weights
+```{r}
+nb_queen <- hunan_GDPPC %>% 
+  mutate(nb = st_contiguity(geometry),
+         .before = 1)
+```
 
 ```{r}
-# Queen's
+# Print summary 9of first lag neighbour
+summary(nb_queen$nb)
+```
+
+```{r}
+# View content of data tbale
+nb_queen
+```
+
+```{r}
+# Reveal county name of neighbours
+nb_queen$County[c(2,3,4,57,85)]
+```
+
+## Identify higher order neighbours
+
+```{r}
+# Get both 1st and 2nd order neighbours
+nb2_queen <-  hunan_GDPPC %>% 
+  mutate(nb = st_contiguity(geometry),
+         nb2 = st_nb_lag_cumul(nb, 2),
+         .before = 1)
+```
+
+```{r}
+nb2_queen
+```
+
+# Deriving contiguity weights
+
+## Queen's Method
+
+```{r}
+# Derive weights
 wm_q <- hunan_GDPPC %>%
-  mutate(nb = st_contiguity(geometry), 
+  mutate(nb = st_contiguity(geometry),
+         wt = st_weights(nb,
+                         style = "W"),
+         .before = 1) 
+
+wm_q
+```
+
+## Rook's Method
+
+```{r}
+wm_r <- hunan %>%
+  mutate(nb = st_contiguity(geometry,
+                            queen = FALSE),
          wt = st_weights(nb),
-         .before = 1)
+         .before = 1) 
+
+wm_r
+```
+
+# Distance-Based Weights
+
+Types of distance-based spatial weights:
+
+-   fixed distance weights,
+
+-   adaptive distance weights, and
+
+-   inverse distance weights (IDW).
+
+## Fixed Weights
+
+```{r}
+# Determine upper limit for dist band
+geo <- sf::st_geometry(hunan_GDPPC)
+nb <- st_knn(geo, longlat = TRUE)
+dists <- unlist(st_nb_dists(geo, nb))
+
+summary(dists)
 ```
 
 ```{r}
-# Rook's
-wm_r <- hunan_GDPPC %>%
-  mutate(nb = st_contiguity(geometry), 
-         queen = FALSE,
-         wt = st_weights(nb),
-         .before = 1)
+# Computed dixed weights
+wm_fd <- hunan_GDPPC %>%
+  mutate(nb = st_dist_band(geometry,
+                           upper = 66),
+               wt = st_weights(nb),
+               .before = 1)
+
+wm_fd
 ```
 
-## Distance based method
+## Adaptive Distance Weights
+
+```{r}
+wm_ad <- hunan_GDPPC %>% 
+  mutate(nb = st_knn(geometry,
+                     k=8),
+         wt = st_weights(nb),
+               .before = 1)
+
+wm_ad
+```
+
+## Inverse Distance Weights
+
+```{r}
+wm_idw <- hunan_GDPPC %>%
+  mutate(nb = st_contiguity(geometry),
+         wts = st_inverse_distance(nb, geometry,
+                                   scale = 1,
+                                   alpha = 1),
+         .before = 1)
+
+wm_idw
+```
