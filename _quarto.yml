@@ -31,6 +31,8 @@ website:
             href: "In-class_Exercise/Wk5/ICE_Wk5.qmd"
           - text: "Week 6"
             href: "In-class_Exercise/Wk6/ICE_Wk6.qmd"
+          - text: "Week 7"
+            href: "In-class_Exercise/Wk7/ICE_Wk7.qmd"
       - text: "Take-home Exercise"
         menu:
           - text: "Take-home Ex1"

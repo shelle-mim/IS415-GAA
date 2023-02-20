@@ -1,0 +1,208 @@
+---
+title: "In-Class Exercise 7: Global and Local Measures of Spatial Association"
+date: "20 Feb 2023"
+date-modified: "`r Sys.Date()`"
+format: html
+execute: 
+  message: false
+  warning: false
+editor: visual
+---
+
+# Imports
+
+```{r}
+pacman::p_load(sf, sfdep, tmap, tidyverse, plotly)
+```
+
+# Import data
+
+```{r}
+# Import
+hunan <- st_read(dsn = "data/geospatial", 
+                 layer = "Hunan")
+hunan2012 <- read_csv("data/aspatial/Hunan_2012.csv")
+
+# Join the data
+hunan_GDPPC <- left_join(hunan, hunan2012) %>% # left one must be the geospatial
+  select(1:4, 7, 15)
+```
+
+```{r}
+GDPPC <- read_csv("data/aspatial/Hunan_GDPPC.csv")
+
+GDPPC_st = spacetime(GDPPC, hunan, .loc_col = "County", .time_col = "Year")
+```
+
+```{r}
+# Visualise the data
+tm_shape(hunan_GDPPC)+
+  tm_fill("GDPPC", 
+          style = "quantile", 
+          palette = "RdPu",
+          title = "Dependency ratio") +
+  tm_layout(main.title = "Distribution of GDP per capita by district, Hunan Province",
+            main.title.position = "center",
+            main.title.size = 1,
+            legend.outside = TRUE,
+            frame = TRUE) +
+  tm_borders(alpha = 0.5) +
+  tm_grid(alpha =0.2) +
+  tm_compass(type="8star", size = 2) +
+  tm_scale_bar()
+```
+
+# Global Measures of Spatial Association
+
+## Derive weight metrics
+
+```{r}
+wm_q <- hunan_GDPPC %>%
+  mutate(nb = st_contiguity(geometry),
+         wt = st_weights(nb,
+                         style = "W"),
+         .before = 1) 
+
+wm_q # is not a typical data struct, has lists within. saved within a data table
+```
+
+## Computing global Moran'I
+
+```{r}
+moranI <- global_moran(wm_q$GDPPC, #need to specify which vectors bcos its a diff data struct
+                       wm_q$nb,
+                       wm_q$wt)
+```
+
+## Perform Global Moran'I test
+
+```{r}
+# Usually dont just conpute moranI by itself, do the global test
+global_moran_test(wm_q$GDPPC, # need to specify which vectors bcos its a diff data struct
+                  wm_q$nb,
+                  wm_q$wt)
+```
+
+## Perform Global Moran'I permutation test
+
+```{r}
+set.seed(42069) # put in seperate code chunk so is global
+```
+
+```{r}
+global_moran_perm(wm_q$GDPPC, # need to specify which vectors bcos its a diff data struct
+                  wm_q$nb,
+                  wm_q$wt,
+                  nsim = 99)
+```
+
+## Computing local Moran's I
+
+```{r}
+lisa <- wm_q %>%
+  mutate(local_moran = local_moran(GDPPC, nb, wt, nsim = 99),
+    .before = 1) %>%
+  unnest(local_moran)
+
+lisa # will automatically give you the low-low, high-low, high-high, do not need to manually translate it
+# will generally use the mean or the pysal for the result
+```
+
+## Visualising local Moran's I
+
+```{r}
+# Plot moran'i
+tmap_mode("plot")
+tm_shape(lisa) +
+  tm_fill("ii") +
+  tm_borders(alpha = 0.5)
+```
+
+```{r}
+# Plot p value
+# p_ii_sim from the one with many simulations
+tm_shape(lisa) +
+  tm_fill("p_ii_sim") +
+  tm_borders(alpha = 0.5)
+```
+
+```{r}
+lisa_sig <- lisa %>%
+  filter(p_ii_sim < 0.05)
+
+# plot the significant low-low, low-high, high-low and high-high
+tm_shape(lisa) +
+  tm_polygons() +
+  tm_borders(alpha = 0.5) +
+  tm_shape(lisa_sig) +
+  tm_fill("mean") +
+  tm_borders(alpha = 0.4)
+```
+
+## Computing Gi\*
+
+```{r}
+HCSA <- wm_q %>%
+  mutate(local_Gi = local_gstar_perm(GDPPC, nb, wt, nsim=99),
+         .before = 1) %>%
+  unnest(local_Gi)
+
+HCSA
+```
+
+## Visualising Gi\*
+
+```{r}
+tmap_mode("view")
+tm_shape(HCSA) +
+  tm_fill("gi_star") +
+  tm_borders(alpha = 0.5) + 
+  tm_view(set.zoom.limits = c(6, 8))
+```
+
+```{r}
+# plot significant values
+tmap_mode("plot")
+
+tm_shape(HCSA) +
+  tm_fill("p_sim") +
+  tm_borders(alpha = 0.5)
+```
+
+# Creating a Time Series Cube
+
+```{r}
+GDPPC_nb <- GDPPC_st %>%
+  activate("geometry") %>%
+  mutate(
+    nb = include_self(st_contiguity(geometry)),
+    wt = st_weights(nb)
+  ) %>%
+  set_nbs("nb") %>%
+  set_wts("wt")
+```
+
+## Creating Gi\*
+
+```{r}
+gi_stars <- GDPPC_nb %>%
+  group_by(Year) %>%
+  mutate(gi_star = local_gstar_perm(GDPPC, nb, wt, nsim=99),
+         .before = 1) %>%
+  unnest(gi_star)
+```
+
+# Mann-Kendall Test
+
+```{r}
+cbg <- gi_stars %>%
+  ungroup() %>%
+  filter(County == "Changsha") %>%
+  select(County, Year, gi_star)
+```
+
+## Arrange to show sig values
+
+## Performing Emerging Hotspot
+
+## Visualising EHSA

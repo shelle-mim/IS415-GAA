@@ -200,7 +200,7 @@
     "href": "Hands-on_Exercise/Wk4/HOE_Wk4.html#nearest-neighbour-analysis",
     "title": "In-Class Exercise 4: Spatial Point Patterns Analysis",
     "section": "Nearest Neighbour Analysis",
-    "text": "Nearest Neighbour Analysis\n\n# Clark-Evans test of aggregation\nclarkevans.test(childcareSG_ppp,\n                correction=\"none\",\n                clipregion=\"sg_owin\",\n                alternative=c(\"clustered\"),\n                nsim=99)\n\n\n    Clark-Evans test\n    No edge correction\n    Monte Carlo test based on 99 simulations of CSR with fixed n\n\ndata:  childcareSG_ppp\nR = 0.54756, p-value = 0.01\nalternative hypothesis: clustered (R < 1)\n\n\n\n# C-E test for CCK\nclarkevans.test(childcare_ck_ppp,\n                correction=\"none\",\n                clipregion=NULL,\n                alternative=c(\"two.sided\"),\n                nsim=999)\n\n\n    Clark-Evans test\n    No edge correction\n    Monte Carlo test based on 999 simulations of CSR with fixed n\n\ndata:  childcare_ck_ppp\nR = 0.96859, p-value = 0.224\nalternative hypothesis: two-sided\n\n\n\n# C-E test for Tamp\nclarkevans.test(childcare_tm_ppp,\n                correction=\"none\",\n                clipregion=NULL,\n                alternative=c(\"two.sided\"),\n                nsim=999)\n\n\n    Clark-Evans test\n    No edge correction\n    Monte Carlo test based on 999 simulations of CSR with fixed n\n\ndata:  childcare_tm_ppp\nR = 0.79572, p-value = 0.002\nalternative hypothesis: two-sided"
+    "text": "Nearest Neighbour Analysis\n\n# Clark-Evans test of aggregation\nclarkevans.test(childcareSG_ppp,\n                correction=\"none\",\n                clipregion=\"sg_owin\",\n                alternative=c(\"clustered\"),\n                nsim=99)\n\n\n    Clark-Evans test\n    No edge correction\n    Monte Carlo test based on 99 simulations of CSR with fixed n\n\ndata:  childcareSG_ppp\nR = 0.54756, p-value = 0.01\nalternative hypothesis: clustered (R < 1)\n\n\n\n# C-E test for CCK\nclarkevans.test(childcare_ck_ppp,\n                correction=\"none\",\n                clipregion=NULL,\n                alternative=c(\"two.sided\"),\n                nsim=999)\n\n\n    Clark-Evans test\n    No edge correction\n    Monte Carlo test based on 999 simulations of CSR with fixed n\n\ndata:  childcare_ck_ppp\nR = 0.96655, p-value = 0.196\nalternative hypothesis: two-sided\n\n\n\n# C-E test for Tamp\nclarkevans.test(childcare_tm_ppp,\n                correction=\"none\",\n                clipregion=NULL,\n                alternative=c(\"two.sided\"),\n                nsim=999)\n\n\n    Clark-Evans test\n    No edge correction\n    Monte Carlo test based on 999 simulations of CSR with fixed n\n\ndata:  childcare_tm_ppp\nR = 0.7824, p-value = 0.002\nalternative hypothesis: two-sided"
   },
   {
     "objectID": "Hands-on_Exercise/Wk4/HOE_Wk4.html#g-function",
@@ -565,6 +565,97 @@
     "title": "In-Class Exercise 2",
     "section": "Visualization",
     "text": "Visualization\n\nggplot(data=NGA_wp,\n       aes(x=total_wp)) +\n  geom_histogram(bins=20,\n                 color=\"black\",\n                 fill=\"light blue\") +\n  geom_vline(aes(xintercept=mean(\n    total_wp, na.rm=T\n  )),\n  color=\"red\",\n  linetype=\"dashed\",\n  linewidth=0.8) +\n  ggtitle(\"Distribution of total water points by LGA\") +\n  xlab(\"No. of water points\") +\n  ylab(\"No. of\\nLGAs\") +\n  theme(axis.title.y=element_text(angle = 0))"
+  },
+  {
+    "objectID": "In-class_Exercise/Wk7/ICE_Wk7.html",
+    "href": "In-class_Exercise/Wk7/ICE_Wk7.html",
+    "title": "In-Class Exercise 7: Global and Local Measures of Spatial Association",
+    "section": "",
+    "text": "pacman::p_load(sf, sfdep, tmap, tidyverse, plotly)"
+  },
+  {
+    "objectID": "In-class_Exercise/Wk7/ICE_Wk7.html#derive-weight-metrics",
+    "href": "In-class_Exercise/Wk7/ICE_Wk7.html#derive-weight-metrics",
+    "title": "In-Class Exercise 7: Global and Local Measures of Spatial Association",
+    "section": "Derive weight metrics",
+    "text": "Derive weight metrics\n\nwm_q <- hunan_GDPPC %>%\n  mutate(nb = st_contiguity(geometry),\n         wt = st_weights(nb,\n                         style = \"W\"),\n         .before = 1) \n\nwm_q # is not a typical data struct, has lists within. saved within a data table\n\nSimple feature collection with 88 features and 8 fields\nGeometry type: POLYGON\nDimension:     XY\nBounding box:  xmin: 108.7831 ymin: 24.6342 xmax: 114.2544 ymax: 30.12812\nGeodetic CRS:  WGS 84\nFirst 10 features:\n                               nb\n1                 2, 3, 4, 57, 85\n2               1, 57, 58, 78, 85\n3                     1, 4, 5, 85\n4                      1, 3, 5, 6\n5                     3, 4, 6, 85\n6                4, 5, 69, 75, 85\n7                  67, 71, 74, 84\n8       9, 46, 47, 56, 78, 80, 86\n9           8, 66, 68, 78, 84, 86\n10 16, 17, 19, 20, 22, 70, 72, 73\n                                                                            wt\n1                                                      0.2, 0.2, 0.2, 0.2, 0.2\n2                                                      0.2, 0.2, 0.2, 0.2, 0.2\n3                                                       0.25, 0.25, 0.25, 0.25\n4                                                       0.25, 0.25, 0.25, 0.25\n5                                                       0.25, 0.25, 0.25, 0.25\n6                                                      0.2, 0.2, 0.2, 0.2, 0.2\n7                                                       0.25, 0.25, 0.25, 0.25\n8  0.1428571, 0.1428571, 0.1428571, 0.1428571, 0.1428571, 0.1428571, 0.1428571\n9             0.1666667, 0.1666667, 0.1666667, 0.1666667, 0.1666667, 0.1666667\n10                      0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125\n     NAME_2  ID_3    NAME_3   ENGTYPE_3    County GDPPC\n1   Changde 21098   Anxiang      County   Anxiang 23667\n2   Changde 21100   Hanshou      County   Hanshou 20981\n3   Changde 21101    Jinshi County City    Jinshi 34592\n4   Changde 21102        Li      County        Li 24473\n5   Changde 21103     Linli      County     Linli 25554\n6   Changde 21104    Shimen      County    Shimen 27137\n7  Changsha 21109   Liuyang County City   Liuyang 63118\n8  Changsha 21110 Ningxiang      County Ningxiang 62202\n9  Changsha 21111 Wangcheng      County Wangcheng 70666\n10 Chenzhou 21112     Anren      County     Anren 12761\n                         geometry\n1  POLYGON ((112.0625 29.75523...\n2  POLYGON ((112.2288 29.11684...\n3  POLYGON ((111.8927 29.6013,...\n4  POLYGON ((111.3731 29.94649...\n5  POLYGON ((111.6324 29.76288...\n6  POLYGON ((110.8825 30.11675...\n7  POLYGON ((113.9905 28.5682,...\n8  POLYGON ((112.7181 28.38299...\n9  POLYGON ((112.7914 28.52688...\n10 POLYGON ((113.1757 26.82734..."
+  },
+  {
+    "objectID": "In-class_Exercise/Wk7/ICE_Wk7.html#computing-global-morani",
+    "href": "In-class_Exercise/Wk7/ICE_Wk7.html#computing-global-morani",
+    "title": "In-Class Exercise 7: Global and Local Measures of Spatial Association",
+    "section": "Computing global Moran’I",
+    "text": "Computing global Moran’I\n\nmoranI <- global_moran(wm_q$GDPPC, #need to specify which vectors bcos its a diff data struct\n                       wm_q$nb,\n                       wm_q$wt)"
+  },
+  {
+    "objectID": "In-class_Exercise/Wk7/ICE_Wk7.html#perform-global-morani-test",
+    "href": "In-class_Exercise/Wk7/ICE_Wk7.html#perform-global-morani-test",
+    "title": "In-Class Exercise 7: Global and Local Measures of Spatial Association",
+    "section": "Perform Global Moran’I test",
+    "text": "Perform Global Moran’I test\n\n# Usually dont just conpute moranI by itself, do the global test\nglobal_moran_test(wm_q$GDPPC, # need to specify which vectors bcos its a diff data struct\n                  wm_q$nb,\n                  wm_q$wt)\n\n\n    Moran I test under randomisation\n\ndata:  x  \nweights: listw    \n\nMoran I statistic standard deviate = 4.7351, p-value = 1.095e-06\nalternative hypothesis: greater\nsample estimates:\nMoran I statistic       Expectation          Variance \n      0.300749970      -0.011494253       0.004348351"
+  },
+  {
+    "objectID": "In-class_Exercise/Wk7/ICE_Wk7.html#perform-global-morani-permutation-test",
+    "href": "In-class_Exercise/Wk7/ICE_Wk7.html#perform-global-morani-permutation-test",
+    "title": "In-Class Exercise 7: Global and Local Measures of Spatial Association",
+    "section": "Perform Global Moran’I permutation test",
+    "text": "Perform Global Moran’I permutation test\n\nset.seed(42069) # put in seperate code chunk so is global\n\n\nglobal_moran_perm(wm_q$GDPPC, # need to specify which vectors bcos its a diff data struct\n                  wm_q$nb,\n                  wm_q$wt,\n                  nsim = 99)\n\n\n    Monte-Carlo simulation of Moran I\n\ndata:  x \nweights: listw  \nnumber of simulations + 1: 100 \n\nstatistic = 0.30075, observed rank = 100, p-value < 2.2e-16\nalternative hypothesis: two.sided"
+  },
+  {
+    "objectID": "In-class_Exercise/Wk7/ICE_Wk7.html#computing-local-morans-i",
+    "href": "In-class_Exercise/Wk7/ICE_Wk7.html#computing-local-morans-i",
+    "title": "In-Class Exercise 7: Global and Local Measures of Spatial Association",
+    "section": "Computing local Moran’s I",
+    "text": "Computing local Moran’s I\n\nlisa <- wm_q %>%\n  mutate(local_moran = local_moran(GDPPC, nb, wt, nsim = 99),\n    .before = 1) %>%\n  unnest(local_moran)\n\nlisa # will automatically give you the low-low, high-low, high-high, do not need to manually translate it\n\nSimple feature collection with 88 features and 20 fields\nGeometry type: POLYGON\nDimension:     XY\nBounding box:  xmin: 108.7831 ymin: 24.6342 xmax: 114.2544 ymax: 30.12812\nGeodetic CRS:  WGS 84\n# A tibble: 88 × 21\n         ii       eii     var_ii    z_ii    p_ii p_ii_…¹ p_fol…² skewn…³ kurto…⁴\n      <dbl>     <dbl>      <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>\n 1 -0.00147 -0.000102 0.000610   -0.0554 9.56e-1    0.78    0.39  -0.935  0.478 \n 2  0.0259   0.00777  0.00796     0.203  8.39e-1    0.98    0.49  -0.601 -0.102 \n 3 -0.0120   0.0256   0.140      -0.100  9.20e-1    0.84    0.42   0.858 -0.0960\n 4  0.00102 -0.000341 0.00000485  0.620  5.36e-1    0.5     0.25   1.15   0.807 \n 5  0.0148   0.00160  0.00137     0.356  7.22e-1    0.66    0.33   0.748  0.379 \n 6 -0.0388  -0.0196   0.00691    -0.231  8.17e-1    0.98    0.49   0.989  1.04  \n 7  3.37     0.124    2.23        2.17   2.97e-2    0.12    0.06   1.42   2.07  \n 8  1.56    -0.240    0.645       2.24   2.50e-2    0.06    0.03   0.508  0.147 \n 9  4.42    -0.0736   1.39        3.82   1.34e-4    0.02    0.01   0.555 -0.396 \n10 -0.399   -0.00709  0.0749     -1.43   1.52e-1    0.26    0.13  -0.392 -0.765 \n# … with 78 more rows, 12 more variables: mean <fct>, median <fct>,\n#   pysal <fct>, nb <nb>, wt <list>, NAME_2 <chr>, ID_3 <int>, NAME_3 <chr>,\n#   ENGTYPE_3 <chr>, County <chr>, GDPPC <dbl>, geometry <POLYGON [°]>, and\n#   abbreviated variable names ¹​p_ii_sim, ²​p_folded_sim, ³​skewness, ⁴​kurtosis\n\n# will generally use the mean or the pysal for the result"
+  },
+  {
+    "objectID": "In-class_Exercise/Wk7/ICE_Wk7.html#visualising-local-morans-i",
+    "href": "In-class_Exercise/Wk7/ICE_Wk7.html#visualising-local-morans-i",
+    "title": "In-Class Exercise 7: Global and Local Measures of Spatial Association",
+    "section": "Visualising local Moran’s I",
+    "text": "Visualising local Moran’s I\n\n# Plot moran'i\ntmap_mode(\"plot\")\ntm_shape(lisa) +\n  tm_fill(\"ii\") +\n  tm_borders(alpha = 0.5)\n\n\n\n\n\n# Plot p value\n# p_ii_sim from the one with many simulations\ntm_shape(lisa) +\n  tm_fill(\"p_ii_sim\") +\n  tm_borders(alpha = 0.5)\n\n\n\n\n\nlisa_sig <- lisa %>%\n  filter(p_ii_sim < 0.05)\n\n# plot the significant low-low, low-high, high-low and high-high\ntm_shape(lisa) +\n  tm_polygons() +\n  tm_borders(alpha = 0.5) +\n  tm_shape(lisa_sig) +\n  tm_fill(\"mean\") +\n  tm_borders(alpha = 0.4)"
+  },
+  {
+    "objectID": "In-class_Exercise/Wk7/ICE_Wk7.html#computing-gi",
+    "href": "In-class_Exercise/Wk7/ICE_Wk7.html#computing-gi",
+    "title": "In-Class Exercise 7: Global and Local Measures of Spatial Association",
+    "section": "Computing Gi*",
+    "text": "Computing Gi*\n\nHCSA <- wm_q %>%\n  mutate(local_Gi = local_gstar_perm(GDPPC, nb, wt, nsim=99),\n         .before = 1) %>%\n  unnest(local_Gi)\n\nHCSA\n\nSimple feature collection with 88 features and 16 fields\nGeometry type: POLYGON\nDimension:     XY\nBounding box:  xmin: 108.7831 ymin: 24.6342 xmax: 114.2544 ymax: 30.12812\nGeodetic CRS:  WGS 84\n# A tibble: 88 × 17\n   gi_star   e_gi     var_gi  p_value p_sim p_fold…¹ skewn…² kurto…³ nb    wt   \n     <dbl>  <dbl>      <dbl>    <dbl> <dbl>    <dbl>   <dbl>   <dbl> <nb>  <lis>\n 1 -0.0578 0.0117 0.00000946 9.54e- 1  0.92     0.46   0.573  -0.638 <int> <dbl>\n 2 -0.456  0.0117 0.00000740 6.48e- 1  0.78     0.39   0.426  -0.472 <int> <dbl>\n 3  0.369  0.0110 0.0000109  7.12e- 1  0.64     0.32   0.967   0.436 <int> <dbl>\n 4  0.412  0.0113 0.0000103  6.80e- 1  0.58     0.29   0.664  -0.350 <int> <dbl>\n 5  0.181  0.0119 0.0000109  8.56e- 1  0.88     0.44   0.490  -0.201 <int> <dbl>\n 6 -0.377  0.0114 0.00000778 7.06e- 1  0.86     0.43   0.422  -0.656 <int> <dbl>\n 7  3.70   0.0113 0.00000860 2.18e- 4  0.02     0.01   0.906   0.354 <int> <dbl>\n 8  2.64   0.0108 0.00000607 8.20e- 3  0.06     0.03   0.914   0.390 <int> <dbl>\n 9  6.24   0.0106 0.00000388 4.44e-10  0.02     0.01   0.228  -0.749 <int> <dbl>\n10  1.15   0.0112 0.00000539 2.48e- 1  0.32     0.16   0.573  -0.275 <int> <dbl>\n# … with 78 more rows, 7 more variables: NAME_2 <chr>, ID_3 <int>,\n#   NAME_3 <chr>, ENGTYPE_3 <chr>, County <chr>, GDPPC <dbl>,\n#   geometry <POLYGON [°]>, and abbreviated variable names ¹​p_folded_sim,\n#   ²​skewness, ³​kurtosis"
+  },
+  {
+    "objectID": "In-class_Exercise/Wk7/ICE_Wk7.html#visualising-gi",
+    "href": "In-class_Exercise/Wk7/ICE_Wk7.html#visualising-gi",
+    "title": "In-Class Exercise 7: Global and Local Measures of Spatial Association",
+    "section": "Visualising Gi*",
+    "text": "Visualising Gi*\n\ntmap_mode(\"view\")\ntm_shape(HCSA) +\n  tm_fill(\"gi_star\") +\n  tm_borders(alpha = 0.5) + \n  tm_view(set.zoom.limits = c(6, 8))\n\n\n\n\n\n\n\n# plot significant values\ntmap_mode(\"plot\")\n\ntm_shape(HCSA) +\n  tm_fill(\"p_sim\") +\n  tm_borders(alpha = 0.5)"
+  },
+  {
+    "objectID": "In-class_Exercise/Wk7/ICE_Wk7.html#creating-gi",
+    "href": "In-class_Exercise/Wk7/ICE_Wk7.html#creating-gi",
+    "title": "In-Class Exercise 7: Global and Local Measures of Spatial Association",
+    "section": "Creating Gi*",
+    "text": "Creating Gi*\n\ngi_stars <- GDPPC_nb %>%\n  group_by(Year) %>%\n  mutate(gi_star = local_gstar_perm(GDPPC, nb, wt, nsim=99),\n         .before = 1) %>%\n  unnest(gi_star)"
+  },
+  {
+    "objectID": "In-class_Exercise/Wk7/ICE_Wk7.html#arrange-to-show-sig-values",
+    "href": "In-class_Exercise/Wk7/ICE_Wk7.html#arrange-to-show-sig-values",
+    "title": "In-Class Exercise 7: Global and Local Measures of Spatial Association",
+    "section": "Arrange to show sig values",
+    "text": "Arrange to show sig values"
+  },
+  {
+    "objectID": "In-class_Exercise/Wk7/ICE_Wk7.html#performing-emerging-hotspot",
+    "href": "In-class_Exercise/Wk7/ICE_Wk7.html#performing-emerging-hotspot",
+    "title": "In-Class Exercise 7: Global and Local Measures of Spatial Association",
+    "section": "Performing Emerging Hotspot",
+    "text": "Performing Emerging Hotspot"
+  },
+  {
+    "objectID": "In-class_Exercise/Wk7/ICE_Wk7.html#visualising-ehsa",
+    "href": "In-class_Exercise/Wk7/ICE_Wk7.html#visualising-ehsa",
+    "title": "In-Class Exercise 7: Global and Local Measures of Spatial Association",
+    "section": "Visualising EHSA",
+    "text": "Visualising EHSA"
   },
   {
     "objectID": "In-class_Exercise/Wk6/ICE_Wk6.html",
