@@ -10,4 +10,94 @@ execute:
 editor: visual
 ---
 
-take first day to first day or last day to last day
+# Import Packages
+
+```{r}
+pacman::p_load(sf, sfdep, tmap, tidyverse, plotly, readxl)
+```
+
+# Import the Data
+
+## Import Geospatial Data
+
+```{r}
+jakarta_boundaries <- st_read(dsn="data/geospatial",
+                      layer="BATAS_DESA_DESEMBER_2019_DUKCAPIL_DKI_JAKARTA")
+```
+
+## Import Aspatial Data
+
+```{r}
+jul2021 <- read_xlsx("data/aspatial/Data Vaksinasi Berbasis Kelurahan (31 Juli 2021).xlsx")
+glimpse(jul2021)
+```
+
+# Data Wrangling
+
+## Geospatial Data
+
+```{r}
+st_crs(jakarta_boundaries)
+```
+
+```{r}
+# Convert to DGN95, the national CRS of indonesia
+jakarta_boundaries <- st_transform(jakarta_boundaries, 23845)
+```
+
+```{r}
+# Select relavent data and rename
+jakarta_boundaries <- jakarta_boundaries[, 0:9]
+
+jakarta_boundaries <- jakarta_boundaries %>% 
+  dplyr::rename(
+    Object_ID=OBJECT_ID,
+    Province=PROVINSI, 
+    City=KAB_KOTA, 
+    District=KECAMATAN, 
+    Village_Code=KODE_DESA, 
+    Village=DESA, 
+    Sub_District=DESA_KELUR,
+    Code=KODE, 
+    Total_Population=JUMLAH_PEN
+    )
+```
+
+```{r}
+# Visulaise the data
+plot(st_geometry(jakarta_boundaries))
+```
+
+After some trial and error, we can see that when plotting by city, all the islands fall under the city KEPULAUAN SERIBU, as seen when we visualise the data below:
+
+```{r}
+tmap_mode("view")
+tm_shape(jakarta_boundaries) + 
+  tm_polygons("City") +
+  tm_view(set.zoom.limits = c(9, 12))
+
+tmap_mode("plot")
+```
+
+```{r}
+# Remove small islands
+jakarta_boundaries <- filter(jakarta_boundaries, City != "KEPULAUAN SERIBU")
+```
+
+```{r}
+# Check for invalid geometries
+length(which(st_is_valid(jakarta_boundaries) == FALSE))
+```
+
+```{r}
+# Check for NA values
+jakarta_boundaries[rowSums(is.na(jakarta_boundaries))!=0,]
+```
+
+Since there are no invalid geometries or NA values, we can see our cleaned data below:
+
+```{r}
+plot(st_geometry(jakarta_boundaries))
+```
+
+## Aspatial Data

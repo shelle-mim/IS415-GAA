@@ -17,6 +17,10 @@ website:
             href: "Hands-on_Exercise/Wk6/HOE_Wk6.qmd"
           - text: "Week 7"
             href: "Hands-on_Exercise/Wk7/HOE_Wk7.qmd"
+          - text: "Week 9"
+            href: "Hands-on_Exercise/Wk9/HOE_Wk9.qmd"
+          - text: "Week 10"
+            href: "Hands-on_Exercise/Wk10/HOE_Wk10.qmd"
       - text: "In-class Exercise"
         menu:
           - text: "Week 1"
@@ -33,12 +37,18 @@ website:
             href: "In-class_Exercise/Wk6/ICE_Wk6.qmd"
           - text: "Week 7"
             href: "In-class_Exercise/Wk7/ICE_Wk7.qmd"
+          - text: "Week 9"
+            href: "In-class_Exercise/Wk9/ICE_Wk9.qmd"
+          - text: "Week 10"
+            href: "In-class_Exercise/Wk10/ICE_Wk10.qmd"
       - text: "Take-home Exercise"
         menu:
           - text: "Take-home Ex1"
             href: "Take-home_Exercise/TH1/TH_Ex1.qmd"
           - text: "Take-home Ex2"
             href: "Take-home_Exercise/TH2/TH_Ex2.qmd"
+          - text: "Take-home Ex3"
+            href: "Take-home_Exercise/TH3/TH_Ex3.qmd"
     right:
       - href: index.qmd
         text: Home
