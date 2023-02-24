@@ -101,3 +101,7 @@ plot(st_geometry(jakarta_boundaries))
 ```
 
 ## Aspatial Data
+
+```{r}
+glimpse(jul2021)
+```
