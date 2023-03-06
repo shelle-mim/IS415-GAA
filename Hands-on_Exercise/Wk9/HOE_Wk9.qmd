@@ -1,0 +1,309 @@
+---
+title: "In-Class Exercise 8: Geographically Weighted Regression"
+date: "5 Mar 2023"
+date-modified: "`r Sys.Date()`"
+format: html
+execute: 
+  message: false
+  warning: false
+editor: visual
+---
+
+# Imports
+
+## Import Packages
+
+```{r}
+pacman::p_load(olsrr, corrplot, ggpubr, sf, spdep, GWmodel, tmap, tidyverse, gtsummary)
+
+# OR load corrplot via tools tab
+# pacman::p_load(olsrr, ggpubr, sf, spdep, GWmodel, tmap, tidyverse, gtsummary)
+```
+
+## Geospatial Data Import & Pre-Processing
+
+```{r}
+mpsz = st_read(dsn = "data/geospatial", layer = "MP14_SUBZONE_WEB_PL")
+```
+
+```{r}
+mpsz_svy21 <- st_transform(mpsz, 3414)
+```
+
+```{r}
+st_crs(mpsz_svy21)
+```
+
+```{r}
+# View extent
+st_bbox(mpsz_svy21)
+```
+
+## Aspatial Data Import & Pre-Processing
+
+```{r}
+condo_resale = read_csv("data/aspatial/Condo_resale_2015.csv")
+```
+
+```{r}
+summary(condo_resale)
+# Make sure that in the summary statistics theres no an excessive number of 0 / if data has a good spread
+```
+
+```{r}
+condo_resale.sf <- st_as_sf(condo_resale,
+                            coords = c("LONGITUDE", "LATITUDE"),
+                            crs=4326) %>%
+  st_transform(crs=3414)
+```
+
+```{r}
+head(condo_resale.sf)
+```
+
+# Exploratory Data Analysis
+
+## Statistical Graphics
+
+```{r}
+# Look at selling price distribution
+ggplot(data=condo_resale.sf, aes(x=`SELLING_PRICE`)) +
+  geom_histogram(bins=20, color="black", fill="light blue")
+```
+
+```{r}
+# Get log selling price
+condo_resale.sf <- condo_resale.sf %>%
+  mutate(`LOG_SELLING_PRICE` = log(SELLING_PRICE))
+
+# Plot
+ggplot(data=condo_resale.sf, aes(x=`LOG_SELLING_PRICE`)) +
+  geom_histogram(bins=20, color="black", fill="light blue")
+```
+
+```{r}
+AREA_SQM <- ggplot(data=condo_resale.sf, aes(x= `AREA_SQM`)) + 
+  geom_histogram(bins=20, color="black", fill="light blue")
+
+AGE <- ggplot(data=condo_resale.sf, aes(x= `AGE`)) +
+  geom_histogram(bins=20, color="black", fill="light blue")
+
+PROX_CBD <- ggplot(data=condo_resale.sf, aes(x= `PROX_CBD`)) +
+  geom_histogram(bins=20, color="black", fill="light blue")
+
+PROX_CHILDCARE <- ggplot(data=condo_resale.sf, aes(x= `PROX_CHILDCARE`)) + 
+  geom_histogram(bins=20, color="black", fill="light blue")
+
+PROX_ELDERLYCARE <- ggplot(data=condo_resale.sf, aes(x= `PROX_ELDERLYCARE`)) +
+  geom_histogram(bins=20, color="black", fill="light blue")
+
+PROX_URA_GROWTH_AREA <- ggplot(data=condo_resale.sf, 
+                               aes(x= `PROX_URA_GROWTH_AREA`)) +
+  geom_histogram(bins=20, color="black", fill="light blue")
+
+PROX_HAWKER_MARKET <- ggplot(data=condo_resale.sf, aes(x= `PROX_HAWKER_MARKET`)) +
+  geom_histogram(bins=20, color="black", fill="light blue")
+
+PROX_KINDERGARTEN <- ggplot(data=condo_resale.sf, aes(x= `PROX_KINDERGARTEN`)) +
+  geom_histogram(bins=20, color="black", fill="light blue")
+
+PROX_MRT <- ggplot(data=condo_resale.sf, aes(x= `PROX_MRT`)) +
+  geom_histogram(bins=20, color="black", fill="light blue")
+
+PROX_PARK <- ggplot(data=condo_resale.sf, aes(x= `PROX_PARK`)) +
+  geom_histogram(bins=20, color="black", fill="light blue")
+
+PROX_PRIMARY_SCH <- ggplot(data=condo_resale.sf, aes(x= `PROX_PRIMARY_SCH`)) +
+  geom_histogram(bins=20, color="black", fill="light blue")
+
+PROX_TOP_PRIMARY_SCH <- ggplot(data=condo_resale.sf, 
+                               aes(x= `PROX_TOP_PRIMARY_SCH`)) +
+  geom_histogram(bins=20, color="black", fill="light blue")
+
+ggarrange(AREA_SQM, AGE, PROX_CBD, PROX_CHILDCARE, PROX_ELDERLYCARE, 
+          PROX_URA_GROWTH_AREA, PROX_HAWKER_MARKET, PROX_KINDERGARTEN, PROX_MRT,
+          PROX_PARK, PROX_PRIMARY_SCH, PROX_TOP_PRIMARY_SCH,  
+          ncol = 3, nrow = 4)
+```
+
+## Statistical Point Map
+
+```{r}
+tmap_mode("view")
+
+tm_shape(mpsz_svy21)+
+  tm_polygons() +
+tm_shape(condo_resale.sf) +  
+  tm_dots(col = "SELLING_PRICE",
+          alpha = 0.6,
+          style="quantile") +
+  tm_view(set.zoom.limits = c(11,14)) +
+  tmap_options(check.and.fix = TRUE)
+```
+
+```{r}
+tmap_mode("plot")
+```
+
+# Hedonic Pricing Modelling
+
+## Simple Linear Regression Method
+
+```{r}
+condo.slr <- lm(formula=SELLING_PRICE ~ AREA_SQM, data = condo_resale.sf)
+
+summary(condo.slr)
+```
+
+```{r}
+ggplot(data=condo_resale.sf,  
+       aes(x=`AREA_SQM`, y=`SELLING_PRICE`)) +
+  geom_point() +
+  geom_smooth(method = lm)
+```
+
+## Multiple Linear Regression Method
+
+```{r}
+# Can easily eyeball the dark red and dark blue colors and determine these are the ones that are highly correlated
+corrplot(cor(condo_resale[, 5:23]), diag = FALSE, order = "AOE",
+         tl.pos = "td", tl.cex = 0.5, method = "number", type = "upper")
+```
+
+## Building a hedonic pricing model using multiple linear regression method
+
+### Calibrate regression model
+
+Will be using LM -\> is from base R, allows you to do generic **linear** regression
+
+There is also GLM which has more types of models
+
+```{r}
+# Calibrate regression model
+#                         Indep var       Follow by dep vars
+condo.mlr <- lm(formula = SELLING_PRICE ~ AREA_SQM + AGE    + 
+                  PROX_CBD + PROX_CHILDCARE + PROX_ELDERLYCARE +
+                  PROX_URA_GROWTH_AREA + PROX_HAWKER_MARKET + PROX_KINDERGARTEN + 
+                  PROX_MRT  + PROX_PARK + PROX_PRIMARY_SCH + 
+                  PROX_TOP_PRIMARY_SCH + PROX_SHOPPING_MALL + PROX_SUPERMARKET + 
+                  PROX_BUS_STOP + NO_Of_UNITS + FAMILY_FRIENDLY + FREEHOLD, 
+                data=condo_resale.sf)
+summary(condo.mlr)
+```
+
+### Remove non statistically significant variables & Calibrate revised model
+
+```{r}
+condo.mlr1 <- lm(formula = SELLING_PRICE ~ AREA_SQM + AGE + 
+                   PROX_CBD + PROX_CHILDCARE + PROX_ELDERLYCARE +
+                   PROX_URA_GROWTH_AREA + PROX_MRT  + PROX_PARK + 
+                   PROX_PRIMARY_SCH + PROX_SHOPPING_MALL    + PROX_BUS_STOP + 
+                   NO_Of_UNITS + FAMILY_FRIENDLY + FREEHOLD,
+                 data=condo_resale.sf)
+
+# this function will print you a tidy report
+ols_regress(condo.mlr1)
+```
+
+### Create Regression Report
+
+```{r}
+tbl_regression(condo.mlr1, intercept = TRUE)
+```
+
+We can also include model statistics by appending them
+
+```{r}
+tbl_regression(condo.mlr1, 
+               intercept = TRUE) %>% 
+  add_glance_source_note(
+    label = list(sigma ~ "\U03C3"),
+    include = c(r.squared, adj.r.squared, 
+                AIC, statistic,
+                p.value, sigma))
+```
+
+### Check for multicolinearity
+
+If VIF values less than 10, no signs of multicolinearity
+
+```{r}
+ols_vif_tol(condo.mlr1)
+```
+
+### Test for non-linearity
+
+Use [`ols_plot_resid_fit()`](https://olsrr.rsquaredacademy.com/reference/ols_plot_resid_fit.html) from **olsrr** package to perform linearity assumption test
+
+If Data is near 0 line, r/s btwn indep and dep vars are linear
+
+```{r}
+ols_plot_resid_fit(condo.mlr1)
+```
+
+### Test for Normality Assumption
+
+```{r}
+# Visualise
+ols_plot_resid_hist(condo.mlr1)
+```
+
+```{r}
+# For formal test stats
+ols_test_normality(condo.mlr1)
+```
+
+### Test for spatial correlation
+
+```{r}
+# Export and save as seperate df
+mlr.output <- as.data.frame(condo.mlr1$residuals)
+
+# Join new df
+condo_resale.res.sf <- cbind(condo_resale.sf, 
+                        condo.mlr1$residuals) %>%
+rename(`MLR_RES` = `condo.mlr1.residuals`)
+```
+
+```{r}
+# Date conversion
+condo_resale.sp <- as_Spatial(condo_resale.res.sf)
+condo_resale.sp
+```
+
+Use visualization to eyeball and see if theres some kind of corr
+
+```{r}
+tmap_mode("view")
+
+tm_shape(mpsz_svy21)+
+  tmap_options(check.and.fix = TRUE) +
+  tm_polygons(alpha = 0.4) +
+tm_shape(condo_resale.res.sf) +  
+  tm_dots(col = "MLR_RES",
+          alpha = 0.6,
+          style="quantile") +
+  tm_view(set.zoom.limits = c(11,14))
+```
+
+```{r}
+tmap_mode("plot")
+```
+
+Since we can see clusters, do Moran I's test
+
+```{r}
+nb <- dnearneigh(coordinates(condo_resale.sp), 0, 1500, longlat = FALSE)
+summary(nb)
+```
+
+```{r}
+# Convert to spatial weights
+nb_lw <- nb2listw(nb, style = 'W')
+summary(nb_lw)
+```
+
+```{r}
+# Perform spatial corr
+lm.morantest(condo.mlr1, nb_lw)
+```

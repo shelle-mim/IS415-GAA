@@ -38,7 +38,7 @@ website:
           - text: "Week 7"
             href: "In-class_Exercise/Wk7/ICE_Wk7.qmd"
           - text: "Week 9"
-            href: "In-class_Exercise/Wk9/ICE_Wk9.qmd"
+            href: "Hands-on_Exercise/Wk9/HOE_Wk9.qmd"
           - text: "Week 10"
             href: "In-class_Exercise/Wk10/ICE_Wk10.qmd"
       - text: "Take-home Exercise"

@@ -1,0 +1,13 @@
+---
+title: "Take-Home Exercise 3: Predicting HDB Public Housing Resale Pricies using Geographically Weighted Methods"
+author: "Michelle Leong Hwee-Ling"
+date: "6 Mar 2023"
+date-modified: "`r Sys.Date()`"
+format: html
+execute: 
+  message: false
+  warning: false
+editor: visual
+---
+
+Use block num and street num to find out where the properties are, do NOT use the polygon
