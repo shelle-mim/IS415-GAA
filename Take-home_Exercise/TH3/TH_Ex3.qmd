@@ -11,3 +11,217 @@ editor: visual
 ---
 
 Use block num and street num to find out where the properties are, do NOT use the polygon
+
+Use a ordinal scale for flat level (e.g. 1-5 can be low level, 15-20 can be high rise)
+
+GWR methods -\> random forest, gwr random forest, gw regression (if adventurous)
+
+use at least 2, the OLS method vs at least one GWR
+
+# Introduction
+
+## Background and Objective
+
+In this exercise, we will be building a predictive model
+
+## Defining the Study Period
+
+For this study, we will be examining a 2-year period of Resale Flat Prices, between Jan 2021 and Dec 2022. We will then conduct geographically weighted regression, and use the months of Jan and Feb of 2023 to test our model.
+
+## Data Set Selection
+
+For this exercise, we will be using the below data sets:
+
+### Geospatial
+
+### Aspatial
+
+-   HDB Resale Flat Prices (from data.gov.sg)
+
+# Imports
+
+## Import Packages
+
+```{r}
+pacman::p_load(olsrr, corrplot, ggpubr, sf, spdep, GWmodel, tmap, tidyverse, gtsummary, httr, onemapsgapi, jsonlite)
+```
+
+## Import Geospatial Data
+
+### Singapore Master Plan 2014 Subzone Boundary Dataset
+
+```{r}
+mpsz = st_read(dsn = "data/geospatial/MP14_SUBZONE", layer = "MP14_SUBZONE_WEB_PL")
+```
+
+```{r}
+mpsz <- st_transform(mpsz, 3414)
+```
+
+```{r}
+tmap_mode("plot")
+tm_shape(mpsz) +
+  tm_polygons("PLN_AREA_N") +
+  tm_layout(legend.outside = TRUE) +
+  tmap_options(max.categories = 56)
+```
+
+```{r}
+unique(mpsz$PLN_AREA_N)
+```
+
+## Import Aspatial Data
+
+### HDB Resale Flat Prices
+
+```{r}
+resale_prices_2017_onwards = read_csv("data/aspatial/resale-flat-prices-based-on-registration-date-from-jan-2017-onwards.csv")
+```
+
+Now, we can separate out our data by date into our training and testing data.
+
+```{r}
+resale_prices_2021_22 <- resale_prices_2017_onwards %>%
+  filter(month < '2023-01') %>%
+  filter(month > '2020-12')
+```
+
+```{r}
+resale_prices_2023 <- resale_prices_2017_onwards %>%
+  filter(month < '2023-03') %>%
+  filter(month > '2022-12')
+```
+
+# Data Wrangling
+
+## Geospatial Data
+
+## Aspatial Data
+
+### HDB Resale Flat Prices
+
+Firstly, we see that our dataset only gives us the street name and block of the resale flats. In order to turn this into geospatial data, we will need the longitude and latitude of the each flat.
+
+We will be using OneMapSgAPI in order to do this.
+
+```{r}
+geocode <- function(block, streetname) {
+  base_url <- "https://developers.onemap.sg/commonapi/search"
+  address <- paste(block, streetname, sep = " ")
+  query <- list("searchVal" = address, 
+                "returnGeom" = "Y",
+                "getAddrDetails" = "N",
+                "pageNum" = "1")
+  
+  res <- GET(base_url, query = query)
+  restext<-content(res, as="text")
+  
+  output <- fromJSON(restext)  %>% 
+    as.data.frame %>%
+    select(results.LATITUDE, results.LONGITUDE)
+
+  return(output)
+}
+```
+
+```{r}
+# resale_prices_2021_22$LATITUDE <- 0
+# resale_prices_2021_22$LONGITUDE <- 0
+# 
+# for (i in 1:nrow(resale_prices_2021_22)){
+#   temp_output <- geocode(resale_prices_2021_22[i, 4], resale_prices_2021_22[i, 5])
+# 
+#   resale_prices_2021_22$LATITUDE[i] <- temp_output$results.LATITUDE
+#   resale_prices_2021_22$LONGITUDE[i] <- temp_output$results.LONGITUDE
+# }
+
+# resale_prices_2023$LATITUDE <- 0
+# resale_prices_2023$LONGITUDE <- 0
+# 
+# for (i in 1:nrow(resale_prices_2023)){
+#   temp_output <- geocode(resale_prices_2023[i, 4], resale_prices_2023[i, 5])
+#   
+#   resale_prices_2023$LATITUDE[i] <- temp_output$results.LATITUDE
+#   resale_prices_2023$LONGITUDE[i] <- temp_output$results.LONGITUDE
+# }
+```
+
+```{r}
+# sum(is.na(resale_prices_2021_22$LATITUDE))
+# sum(is.na(resale_prices_2021_22$LONGITUDE))
+
+# sum(resale_prices_2021_22$LATITUDE == 0)
+# sum(resale_prices_2021_22$LONGITUDE == 0)
+```
+
+```{r}
+# sum(is.na(resale_prices_2023$LATITUDE))
+# sum(is.na(resale_prices_2023$LONGITUDE))
+
+# sum(resale_prices_2023$LATITUDE == 0)
+# sum(resale_prices_2023$LONGITUDE == 0)
+```
+
+```{r}
+# # st_as_sf outputs a simple features data frame
+# resale_prices_2021_22_sf <- st_as_sf(resale_prices_2021_22,
+#                       coords = c("LONGITUDE",
+#                                  "LATITUDE"),
+#                       # the geographical features are in longitude & latitude, in decimals
+#                       # as such, WGS84 is the most appropriate coordinates system
+#                       crs=4326) %>%
+#   #afterwards, we transform it to SVY21, our desired CRS
+#   st_transform(crs = 3414)
+
+# # st_as_sf outputs a simple features data frame
+# resale_prices_2023_sf <- st_as_sf(resale_prices_2023, 
+#                       coords = c("LONGITUDE", 
+#                                  "LATITUDE"), 
+#                       # the geographical features are in longitude & latitude, in decimals
+#                       # as such, WGS84 is the most appropriate coordinates system
+#                       crs=4326) %>%
+#   #afterwards, we transform it to SVY21, our desired CRS
+#   st_transform(crs = 3414)
+```
+
+In order to preserve this data, we will now save it to rds.
+
+```{r}
+# saveRDS(resale_prices_2021_22_sf, file="data/rds/resale_prices_2021_22_sf.rds")
+# saveRDS(resale_prices_2023_sf, file="data/rds/resale_prices_2023_sf.rds")
+```
+
+And now we can load it.
+
+```{r}
+resale_prices_2021_22_sf <- read_rds("data/rds/resale_prices_2021_22_sf.rds")
+resale_prices_2023_sf <- read_rds("data/rds/resale_prices_2023_sf.rds")
+```
+
+We can now display our data on the map.
+
+```{r}
+tmap_mode("view")
+tm_shape(mpsz) +
+  tm_polygons() +
+tm_shape(resale_prices_2021_22_sf)+ 
+  tm_dots(col = "resale_price",
+             size = 0.01,
+             border.col = "black",
+             border.lwd = 0.5) +
+  tmap_options(check.and.fix = TRUE) +
+  tm_view(set.zoom.limits = c(11, 16))
+```
+
+```{r}
+tmap_mode("view")
+tm_shape(mpsz) +
+  tm_polygons() +
+tm_shape(resale_prices_2023_sf)+ 
+  tm_dots(col = "resale_price",
+             size = 0.01,
+             border.col = "black",
+             border.lwd = 0.5) +
+  tmap_options(check.and.fix = TRUE) +
+  tm_view(set.zoom.limits = c(11, 16))
+```

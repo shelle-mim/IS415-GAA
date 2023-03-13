@@ -1,6 +1,6 @@
 ---
-title: "In-Class Exercise 9: "
-date: "? Mar 2023"
+title: "In-Class Exercise 9: Geographically Weighted Random Forest"
+date: "13 Mar 2023"
 date-modified: "`r Sys.Date()`"
 format: html
 execute: 
@@ -8,3 +8,201 @@ execute:
   warning: false
 editor: visual
 ---
+
+# Imports
+
+## Packages
+
+-   gwmodel for calibrate gw model
+
+-   spatialml for calibrate random forest
+
+-   ggpubr for stitch mutiple graph together
+
+-   oslrr for calculating and viewing model diagnostics
+
+-   devtools for importing packages not in CRAN (not needed)
+
+-   tidymodels for creating ML workflows (not needed)
+
+```{r}
+pacman::p_load(sf, GWmodel, SpatialML, tidyverse, tmap, ggpubr, oslrr, devtools, rsample)
+```
+
+## Data
+
+```{r}
+mdata <- read_rds("data/aspatial/mdata.rds")
+```
+
+```{r}
+set.seed(1234)
+```
+
+```{r}
+resale_split <- initial_split(mdata,
+                              prop = 6.5/10)
+train_data <- training(resale_split)
+test_data <- testing(resale_split)
+```
+
+```{r}
+write_rds(train_data, "data/model/train_data.rds")
+write_rds(test_data, "data/model/test_data.rds")
+```
+
+```{r}
+train_data <- read_rds("data/model/train_data.rds")
+test_data <- read_rds("data/model/test_data.rds")
+```
+
+# Building a non-spatial multiple linear regression (with OLS method)
+
+price_mlr \<- lm(resale_price \~ floor_area_sqm +
+
+storey_order + remaining_lease_mths +
+
+PROX_CBD + PROX_ELDERLYCARE + PROX_HAWKER +
+
+PROX_MRT + PROX_PARK + PROX_MALL +
+
+PROX_SUPERMARKET + WITHIN_350M_KINDERGARTEN +
+
+WITHIN_350M_CHILDCARE + WITHIN_350M_BUS +
+
+WITHIN_1KM_PRISCH,
+
+data=train_data)
+
+summary(price_mlr)
+
+```{r}
+price_mlr <- lm(resale_price ~ floor_area_sqm +
+                  storey_order + remaining_lease_mths +
+                  PROX_CBD + PROX_ELDERLYCARE + PROX_HAWKER +
+                  PROX_MRT + PROX_PARK + PROX_MALL +
+                  PROX_SUPERMARKET + WITHIN_350M_KINDERGARTEN +
+                  WITHIN_350M_CHILDCARE + WITHIN_350M_BUS +
+                  WITHIN_1KM_PRISCH,
+                data=train_data)
+summary(price_mlr)
+```
+
+Can use this report for looking at generic trend, but don't report these values (?)
+
+# GWR Methods
+
+## GWR Predictive model
+
+First, need to change to spatial
+
+```{r}
+train_date_sp <- as_Spatial(train_data)
+test_date_sp <- as_Spatial(test_data)
+```
+
+### Computing adaptive bandwidths
+
+Refer to week 9 HOE
+
+## GWR Random Forest (using SpatialML)
+
+### Preparing coordinates data
+
+```{r}
+# Extracting and save geometric data in coordinate files
+coords <- st_coordinates(mdata)
+coords_train <- st_coordinates(train_data)
+coords_test <- st_coordinates(test_data)
+```
+
+```{r}
+write_rds(coords_train, "data/model/coords_train.rds")
+write_rds(coords_test, "data/model/coords_test.rds")
+```
+
+```{r}
+coords_train <- read_rds("data/model/coords_train.rds")
+coords_test <- read_rds("data/model/coords_test.rds")
+```
+
+### Drop Geometry Field
+
+```{r}
+train_data <- train_data %>%
+  st_drop_geometry()
+```
+
+### Calibrate Random Forest
+
+```{r}
+rf <- ranger(resale_price ~ floor_area_sqm +
+                  storey_order + remaining_lease_mths +
+                  PROX_CBD + PROX_ELDERLYCARE + PROX_HAWKER +
+                  PROX_MRT + PROX_PARK + PROX_MALL +
+                  PROX_SUPERMARKET + WITHIN_350M_KINDERGARTEN +
+                  WITHIN_350M_CHILDCARE + WITHIN_350M_BUS +
+                  WITHIN_1KM_PRISCH,
+                data=train_data)
+```
+
+```{r}
+print(rf)
+```
+
+node size -\> min is 5 per node, can increase if you want
+
+OOB -\> mean squared error, is different from the residual standard error in the OSL (is the square root of the standard error), they are not comparable. need to square root MSE if want to compare
+
+Compared based on r squared is easier
+
+## GWR RF (Adaptive)
+
+```{r}
+# gwRF_adaptive <- grf(resale_price ~ floor_area_sqm +
+#                   storey_order + remaining_lease_mths +
+#                   PROX_CBD + PROX_ELDERLYCARE + PROX_HAWKER +
+#                   PROX_MRT + PROX_PARK + PROX_MALL +
+#                   PROX_SUPERMARKET + WITHIN_350M_KINDERGARTEN +
+#                   WITHIN_350M_CHILDCARE + WITHIN_350M_BUS +
+#                   WITHIN_1KM_PRISCH,
+#                 dframe=train_data,
+#                 bw=55,
+#                 kernel="adaptive",
+#                 coords=coords_train)
+```
+
+```{r}
+# Save model
+# write_rds(gwRF_adaptive, "data/model/gwRF_adaptive.rds")
+```
+
+```{r}
+gwRF_adaptive <- read_rds("data/model/gwRF_adaptive.rds")
+```
+
+```{r}
+# View the "importance" of each var (the weights)
+vi_df <- as.data.frame(gwRF_adaptive$Global.Model$variable.importance)
+```
+
+# Predicting using test data
+
+## Prep test data
+
+```{r}
+test_data <- cbind(test_data, coords_test) %>% st_drop_geometry()
+```
+
+## Predict on GWR RF adaptive
+
+```{r}
+# gwRF_pred <- predict.grf(gwRF_adaptive,
+#                          test_data,
+#                          x.var.name="X",
+#                          y.var.name="Y",
+#                          local.w=1,
+#                          global.w=0)
+```
+
+Ouput is a vector

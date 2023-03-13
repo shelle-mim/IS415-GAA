@@ -137,7 +137,7 @@
     "href": "Take-home_Exercise/TH3/TH_Ex3.html",
     "title": "Take-Home Exercise 3: Predicting HDB Public Housing Resale Pricies using Geographically Weighted Methods",
     "section": "",
-    "text": "Use block num and street num to find out where the properties are, do NOT use the polygon"
+    "text": "Use block num and street num to find out where the properties are, do NOT use the polygon\nUse a ordinal scale for flat level (e.g. 1-5 can be low level, 15-20 can be high rise)\nGWR methods -> random forest, gwr random forest, gw regression (if adventurous)\nuse at least 2, the OLS method vs at least one GWR"
   },
   {
     "objectID": "Take-home_Exercise/TH1/TH_Ex1.html",
@@ -1006,5 +1006,117 @@
     "title": "In-Class Exercise 6: Spatial Weights & Applications",
     "section": "Inverse Distance Weights",
     "text": "Inverse Distance Weights\n\nwm_idw <- hunan_GDPPC %>%\n  mutate(nb = st_contiguity(geometry),\n         wts = st_inverse_distance(nb, geometry,\n                                   scale = 1,\n                                   alpha = 1),\n         .before = 1)\n\nwm_idw\n\nSimple feature collection with 88 features and 8 fields\nGeometry type: POLYGON\nDimension:     XY\nBounding box:  xmin: 108.7831 ymin: 24.6342 xmax: 114.2544 ymax: 30.12812\nGeodetic CRS:  WGS 84\nFirst 10 features:\n                               nb\n1                 2, 3, 4, 57, 85\n2               1, 57, 58, 78, 85\n3                     1, 4, 5, 85\n4                      1, 3, 5, 6\n5                     3, 4, 6, 85\n6                4, 5, 69, 75, 85\n7                  67, 71, 74, 84\n8       9, 46, 47, 56, 78, 80, 86\n9           8, 66, 68, 78, 84, 86\n10 16, 17, 19, 20, 22, 70, 72, 73\n                                                                                              wts\n1                                      0.01526149, 0.03515537, 0.02176677, 0.02836978, 0.01029857\n2                                      0.01526149, 0.01601100, 0.01911052, 0.02327058, 0.01591694\n3                                                  0.03515537, 0.04581089, 0.04116397, 0.01208437\n4                                                  0.02176677, 0.04581089, 0.04637578, 0.01585302\n5                                                  0.04116397, 0.04637578, 0.01896212, 0.01351099\n6                                      0.01585302, 0.01896212, 0.02710909, 0.01140718, 0.01080890\n7                                                  0.01621067, 0.01536702, 0.01133628, 0.01836488\n8              0.01930410, 0.02675555, 0.02151751, 0.01076895, 0.02608065, 0.01519804, 0.01337412\n9                          0.01930410, 0.01651371, 0.01798519, 0.01473155, 0.03015561, 0.01612293\n10 0.02737233, 0.01390810, 0.01458881, 0.02156771, 0.02419268, 0.02350470, 0.01784174, 0.01621545\n     NAME_2  ID_3    NAME_3   ENGTYPE_3    County GDPPC\n1   Changde 21098   Anxiang      County   Anxiang 23667\n2   Changde 21100   Hanshou      County   Hanshou 20981\n3   Changde 21101    Jinshi County City    Jinshi 34592\n4   Changde 21102        Li      County        Li 24473\n5   Changde 21103     Linli      County     Linli 25554\n6   Changde 21104    Shimen      County    Shimen 27137\n7  Changsha 21109   Liuyang County City   Liuyang 63118\n8  Changsha 21110 Ningxiang      County Ningxiang 62202\n9  Changsha 21111 Wangcheng      County Wangcheng 70666\n10 Chenzhou 21112     Anren      County     Anren 12761\n                         geometry\n1  POLYGON ((112.0625 29.75523...\n2  POLYGON ((112.2288 29.11684...\n3  POLYGON ((111.8927 29.6013,...\n4  POLYGON ((111.3731 29.94649...\n5  POLYGON ((111.6324 29.76288...\n6  POLYGON ((110.8825 30.11675...\n7  POLYGON ((113.9905 28.5682,...\n8  POLYGON ((112.7181 28.38299...\n9  POLYGON ((112.7914 28.52688...\n10 POLYGON ((113.1757 26.82734..."
+  },
+  {
+    "objectID": "In-class_Exercise/Wk10/ICE_Wk10.html",
+    "href": "In-class_Exercise/Wk10/ICE_Wk10.html",
+    "title": "In-Class Exercise 9: Geographically Weighted Random Forest",
+    "section": "",
+    "text": "gwmodel for calibrate gw model\nspatialml for calibrate random forest\nggpubr for stitch mutiple graph together\noslrr for calculating and viewing model diagnostics\ndevtools for importing packages not in CRAN (not needed)\ntidymodels for creating ML workflows (not needed)\n\n\npacman::p_load(sf, GWmodel, SpatialML, tidyverse, tmap, ggpubr, oslrr, devtools, rsample)\n\n\n\n\n\nmdata <- read_rds(\"data/aspatial/mdata.rds\")\n\n\nset.seed(1234)\n\n\nresale_split <- initial_split(mdata,\n                              prop = 6.5/10)\ntrain_data <- training(resale_split)\ntest_data <- testing(resale_split)\n\n\nwrite_rds(train_data, \"data/model/train_data.rds\")\nwrite_rds(test_data, \"data/model/test_data.rds\")\n\n\ntrain_data <- read_rds(\"data/model/train_data.rds\")\ntest_data <- read_rds(\"data/model/test_data.rds\")"
+  },
+  {
+    "objectID": "In-class_Exercise/Wk10/ICE_Wk10.html#gwr-predictive-model",
+    "href": "In-class_Exercise/Wk10/ICE_Wk10.html#gwr-predictive-model",
+    "title": "In-Class Exercise 9: Geographically Weighted Random Forest",
+    "section": "GWR Predictive model",
+    "text": "GWR Predictive model\nFirst, need to change to spatial\n\ntrain_date_sp <- as_Spatial(train_data)\ntest_date_sp <- as_Spatial(test_data)\n\n\nComputing adaptive bandwidths\nRefer to week 9 HOE"
+  },
+  {
+    "objectID": "In-class_Exercise/Wk10/ICE_Wk10.html#gwr-random-forest-using-spatialml",
+    "href": "In-class_Exercise/Wk10/ICE_Wk10.html#gwr-random-forest-using-spatialml",
+    "title": "In-Class Exercise 9: Geographically Weighted Random Forest",
+    "section": "GWR Random Forest (using SpatialML)",
+    "text": "GWR Random Forest (using SpatialML)\n\nPreparing coordinates data\n\n# Extracting and save geometric data in coordinate files\ncoords <- st_coordinates(mdata)\ncoords_train <- st_coordinates(train_data)\ncoords_test <- st_coordinates(test_data)\n\n\nwrite_rds(coords_train, \"data/model/coords_train.rds\")\nwrite_rds(coords_test, \"data/model/coords_test.rds\")\n\n\ncoords_train <- read_rds(\"data/model/coords_train.rds\")\ncoords_test <- read_rds(\"data/model/coords_test.rds\")\n\n\n\nDrop Geometry Field\n\ntrain_data <- train_data %>%\n  st_drop_geometry()\n\n\n\nCalibrate Random Forest\n\nrf <- ranger(resale_price ~ floor_area_sqm +\n                  storey_order + remaining_lease_mths +\n                  PROX_CBD + PROX_ELDERLYCARE + PROX_HAWKER +\n                  PROX_MRT + PROX_PARK + PROX_MALL +\n                  PROX_SUPERMARKET + WITHIN_350M_KINDERGARTEN +\n                  WITHIN_350M_CHILDCARE + WITHIN_350M_BUS +\n                  WITHIN_1KM_PRISCH,\n                data=train_data)\n\n\nprint(rf)\n\nRanger result\n\nCall:\n ranger(resale_price ~ floor_area_sqm + storey_order + remaining_lease_mths +      PROX_CBD + PROX_ELDERLYCARE + PROX_HAWKER + PROX_MRT + PROX_PARK +      PROX_MALL + PROX_SUPERMARKET + WITHIN_350M_KINDERGARTEN +      WITHIN_350M_CHILDCARE + WITHIN_350M_BUS + WITHIN_1KM_PRISCH,      data = train_data) \n\nType:                             Regression \nNumber of trees:                  500 \nSample size:                      10335 \nNumber of independent variables:  14 \nMtry:                             3 \nTarget node size:                 5 \nVariable importance mode:         none \nSplitrule:                        variance \nOOB prediction error (MSE):       735115316 \nR squared (OOB):                  0.9491221 \n\n\nnode size -> min is 5 per node, can increase if you want\nOOB -> mean squared error, is different from the residual standard error in the OSL (is the square root of the standard error), they are not comparable. need to square root MSE if want to compare\nCompared based on r squared is easier"
+  },
+  {
+    "objectID": "In-class_Exercise/Wk10/ICE_Wk10.html#gwr-rf-adaptive",
+    "href": "In-class_Exercise/Wk10/ICE_Wk10.html#gwr-rf-adaptive",
+    "title": "In-Class Exercise 9: Geographically Weighted Random Forest",
+    "section": "GWR RF (Adaptive)",
+    "text": "GWR RF (Adaptive)\n\n# gwRF_adaptive <- grf(resale_price ~ floor_area_sqm +\n#                   storey_order + remaining_lease_mths +\n#                   PROX_CBD + PROX_ELDERLYCARE + PROX_HAWKER +\n#                   PROX_MRT + PROX_PARK + PROX_MALL +\n#                   PROX_SUPERMARKET + WITHIN_350M_KINDERGARTEN +\n#                   WITHIN_350M_CHILDCARE + WITHIN_350M_BUS +\n#                   WITHIN_1KM_PRISCH,\n#                 dframe=train_data,\n#                 bw=55,\n#                 kernel=\"adaptive\",\n#                 coords=coords_train)\n\n\n# Save model\n# write_rds(gwRF_adaptive, \"data/model/gwRF_adaptive.rds\")\n\n\ngwRF_adaptive <- read_rds(\"data/model/gwRF_adaptive.rds\")\n\n\n# View the \"importance\" of each var (the weights)\nvi_df <- as.data.frame(gwRF_adaptive$Global.Model$variable.importance)"
+  },
+  {
+    "objectID": "In-class_Exercise/Wk10/ICE_Wk10.html#prep-test-data",
+    "href": "In-class_Exercise/Wk10/ICE_Wk10.html#prep-test-data",
+    "title": "In-Class Exercise 9: Geographically Weighted Random Forest",
+    "section": "Prep test data",
+    "text": "Prep test data\n\ntest_data <- cbind(test_data, coords_test) %>% st_drop_geometry()"
+  },
+  {
+    "objectID": "In-class_Exercise/Wk10/ICE_Wk10.html#predict-on-gwr-rf-adaptive",
+    "href": "In-class_Exercise/Wk10/ICE_Wk10.html#predict-on-gwr-rf-adaptive",
+    "title": "In-Class Exercise 9: Geographically Weighted Random Forest",
+    "section": "Predict on GWR RF adaptive",
+    "text": "Predict on GWR RF adaptive\n\n# gwRF_pred <- predict.grf(gwRF_adaptive,\n#                          test_data,\n#                          x.var.name=\"X\",\n#                          y.var.name=\"Y\",\n#                          local.w=1,\n#                          global.w=0)\n\nOuput is a vector"
+  },
+  {
+    "objectID": "Take-home_Exercise/TH3/TH_Ex3.html#background-and-objective",
+    "href": "Take-home_Exercise/TH3/TH_Ex3.html#background-and-objective",
+    "title": "Take-Home Exercise 3: Predicting HDB Public Housing Resale Pricies using Geographically Weighted Methods",
+    "section": "Background and Objective",
+    "text": "Background and Objective\nIn this exercise, we will be building a predictive model"
+  },
+  {
+    "objectID": "Take-home_Exercise/TH3/TH_Ex3.html#defining-the-study-period",
+    "href": "Take-home_Exercise/TH3/TH_Ex3.html#defining-the-study-period",
+    "title": "Take-Home Exercise 3: Predicting HDB Public Housing Resale Pricies using Geographically Weighted Methods",
+    "section": "Defining the Study Period",
+    "text": "Defining the Study Period\nFor this study, we will be examining a 2-year period of Resale Flat Prices, between Jan 2021 and Dec 2022. We will then conduct geographically weighted regression, and use the months of Jan and Feb of 2023 to test our model."
+  },
+  {
+    "objectID": "Take-home_Exercise/TH3/TH_Ex3.html#data-set-selection",
+    "href": "Take-home_Exercise/TH3/TH_Ex3.html#data-set-selection",
+    "title": "Take-Home Exercise 3: Predicting HDB Public Housing Resale Pricies using Geographically Weighted Methods",
+    "section": "Data Set Selection",
+    "text": "Data Set Selection\nFor this exercise, we will be using the below data sets:\n\nGeospatial\n\n\nAspatial\n\nHDB Resale Flat Prices (from data.gov.sg)"
+  },
+  {
+    "objectID": "Take-home_Exercise/TH3/TH_Ex3.html#import-packages",
+    "href": "Take-home_Exercise/TH3/TH_Ex3.html#import-packages",
+    "title": "Take-Home Exercise 3: Predicting HDB Public Housing Resale Pricies using Geographically Weighted Methods",
+    "section": "Import Packages",
+    "text": "Import Packages\n\npacman::p_load(olsrr, corrplot, ggpubr, sf, spdep, GWmodel, tmap, tidyverse, gtsummary, httr, onemapsgapi, jsonlite)"
+  },
+  {
+    "objectID": "Take-home_Exercise/TH3/TH_Ex3.html#import-geospatial-data",
+    "href": "Take-home_Exercise/TH3/TH_Ex3.html#import-geospatial-data",
+    "title": "Take-Home Exercise 3: Predicting HDB Public Housing Resale Pricies using Geographically Weighted Methods",
+    "section": "Import Geospatial Data",
+    "text": "Import Geospatial Data\n\nSingapore Master Plan 2014 Subzone Boundary Dataset\n\nmpsz = st_read(dsn = \"data/geospatial/MP14_SUBZONE\", layer = \"MP14_SUBZONE_WEB_PL\")\n\nReading layer `MP14_SUBZONE_WEB_PL' from data source \n  `/Users/michelle/Desktop/IS415/shelle-mim/IS415-GAA/Take-home_Exercise/TH3/data/geospatial/MP14_SUBZONE' \n  using driver `ESRI Shapefile'\nSimple feature collection with 323 features and 15 fields\nGeometry type: MULTIPOLYGON\nDimension:     XY\nBounding box:  xmin: 2667.538 ymin: 15748.72 xmax: 56396.44 ymax: 50256.33\nProjected CRS: SVY21\n\n\n\nmpsz <- st_transform(mpsz, 3414)\n\n\ntmap_mode(\"plot\")\ntm_shape(mpsz) +\n  tm_polygons(\"PLN_AREA_N\") +\n  tm_layout(legend.outside = TRUE) +\n  tmap_options(max.categories = 56)\n\n\n\n\n\nunique(mpsz$PLN_AREA_N)\n\n [1] \"MARINA SOUTH\"            \"OUTRAM\"                 \n [3] \"SINGAPORE RIVER\"         \"BUKIT MERAH\"            \n [5] \"QUEENSTOWN\"              \"MARINA EAST\"            \n [7] \"RIVER VALLEY\"            \"WESTERN ISLANDS\"        \n [9] \"SOUTHERN ISLANDS\"        \"DOWNTOWN CORE\"          \n[11] \"STRAITS VIEW\"            \"MARINE PARADE\"          \n[13] \"MUSEUM\"                  \"ORCHARD\"                \n[15] \"ROCHOR\"                  \"KALLANG\"                \n[17] \"TANGLIN\"                 \"NEWTON\"                 \n[19] \"CLEMENTI\"                \"TUAS\"                   \n[21] \"BEDOK\"                   \"PIONEER\"                \n[23] \"JURONG EAST\"             \"BUKIT TIMAH\"            \n[25] \"NOVENA\"                  \"GEYLANG\"                \n[27] \"BOON LAY\"                \"TOA PAYOH\"              \n[29] \"JURONG WEST\"             \"BUKIT BATOK\"            \n[31] \"SERANGOON\"               \"PAYA LEBAR\"             \n[33] \"BISHAN\"                  \"TAMPINES\"               \n[35] \"HOUGANG\"                 \"BUKIT PANJANG\"          \n[37] \"ANG MO KIO\"              \"CHOA CHU KANG\"          \n[39] \"PASIR RIS\"               \"CHANGI\"                 \n[41] \"SENGKANG\"                \"CHANGI BAY\"             \n[43] \"TENGAH\"                  \"SUNGEI KADUT\"           \n[45] \"PUNGGOL\"                 \"YISHUN\"                 \n[47] \"MANDAI\"                  \"SELETAR\"                \n[49] \"WOODLANDS\"               \"WESTERN WATER CATCHMENT\"\n[51] \"SEMBAWANG\"               \"SIMPANG\"                \n[53] \"LIM CHU KANG\"            \"NORTH-EASTERN ISLANDS\"  \n[55] \"CENTRAL WATER CATCHMENT\""
+  },
+  {
+    "objectID": "Take-home_Exercise/TH3/TH_Ex3.html#import-aspatial-data",
+    "href": "Take-home_Exercise/TH3/TH_Ex3.html#import-aspatial-data",
+    "title": "Take-Home Exercise 3: Predicting HDB Public Housing Resale Pricies using Geographically Weighted Methods",
+    "section": "Import Aspatial Data",
+    "text": "Import Aspatial Data\n\nHDB Resale Flat Prices\n\nresale_prices_2017_onwards = read_csv(\"data/aspatial/resale-flat-prices-based-on-registration-date-from-jan-2017-onwards.csv\")\n\nNow, we can separate out our data by date into our training and testing data.\n\nresale_prices_2021_22 <- resale_prices_2017_onwards %>%\n  filter(month < '2023-01') %>%\n  filter(month > '2020-12')\n\n\nresale_prices_2023 <- resale_prices_2017_onwards %>%\n  filter(month < '2023-03') %>%\n  filter(month > '2022-12')"
+  },
+  {
+    "objectID": "Take-home_Exercise/TH3/TH_Ex3.html#geospatial-data",
+    "href": "Take-home_Exercise/TH3/TH_Ex3.html#geospatial-data",
+    "title": "Take-Home Exercise 3: Predicting HDB Public Housing Resale Pricies using Geographically Weighted Methods",
+    "section": "Geospatial Data",
+    "text": "Geospatial Data"
+  },
+  {
+    "objectID": "Take-home_Exercise/TH3/TH_Ex3.html#aspatial-data",
+    "href": "Take-home_Exercise/TH3/TH_Ex3.html#aspatial-data",
+    "title": "Take-Home Exercise 3: Predicting HDB Public Housing Resale Pricies using Geographically Weighted Methods",
+    "section": "Aspatial Data",
+    "text": "Aspatial Data\n\nHDB Resale Flat Prices\nFirstly, we see that our dataset only gives us the street name and block of the resale flats. In order to turn this into geospatial data, we will need the longitude and latitude of the each flat.\nWe will be using OneMapSgAPI in order to do this.\n\ngeocode <- function(block, streetname) {\n  base_url <- \"https://developers.onemap.sg/commonapi/search\"\n  address <- paste(block, streetname, sep = \" \")\n  query <- list(\"searchVal\" = address, \n                \"returnGeom\" = \"Y\",\n                \"getAddrDetails\" = \"N\",\n                \"pageNum\" = \"1\")\n  \n  res <- GET(base_url, query = query)\n  restext<-content(res, as=\"text\")\n  \n  output <- fromJSON(restext)  %>% \n    as.data.frame %>%\n    select(results.LATITUDE, results.LONGITUDE)\n\n  return(output)\n}\n\n\n# resale_prices_2021_22$LATITUDE <- 0\n# resale_prices_2021_22$LONGITUDE <- 0\n# \n# for (i in 1:nrow(resale_prices_2021_22)){\n#   temp_output <- geocode(resale_prices_2021_22[i, 4], resale_prices_2021_22[i, 5])\n# \n#   resale_prices_2021_22$LATITUDE[i] <- temp_output$results.LATITUDE\n#   resale_prices_2021_22$LONGITUDE[i] <- temp_output$results.LONGITUDE\n# }\n\n# resale_prices_2023$LATITUDE <- 0\n# resale_prices_2023$LONGITUDE <- 0\n# \n# for (i in 1:nrow(resale_prices_2023)){\n#   temp_output <- geocode(resale_prices_2023[i, 4], resale_prices_2023[i, 5])\n#   \n#   resale_prices_2023$LATITUDE[i] <- temp_output$results.LATITUDE\n#   resale_prices_2023$LONGITUDE[i] <- temp_output$results.LONGITUDE\n# }\n\n\n# sum(is.na(resale_prices_2021_22$LATITUDE))\n# sum(is.na(resale_prices_2021_22$LONGITUDE))\n\n# sum(resale_prices_2021_22$LATITUDE == 0)\n# sum(resale_prices_2021_22$LONGITUDE == 0)\n\n\n# sum(is.na(resale_prices_2023$LATITUDE))\n# sum(is.na(resale_prices_2023$LONGITUDE))\n\n# sum(resale_prices_2023$LATITUDE == 0)\n# sum(resale_prices_2023$LONGITUDE == 0)\n\n\n# # st_as_sf outputs a simple features data frame\n# resale_prices_2021_22_sf <- st_as_sf(resale_prices_2021_22,\n#                       coords = c(\"LONGITUDE\",\n#                                  \"LATITUDE\"),\n#                       # the geographical features are in longitude & latitude, in decimals\n#                       # as such, WGS84 is the most appropriate coordinates system\n#                       crs=4326) %>%\n#   #afterwards, we transform it to SVY21, our desired CRS\n#   st_transform(crs = 3414)\n\n# # st_as_sf outputs a simple features data frame\n# resale_prices_2023_sf <- st_as_sf(resale_prices_2023, \n#                       coords = c(\"LONGITUDE\", \n#                                  \"LATITUDE\"), \n#                       # the geographical features are in longitude & latitude, in decimals\n#                       # as such, WGS84 is the most appropriate coordinates system\n#                       crs=4326) %>%\n#   #afterwards, we transform it to SVY21, our desired CRS\n#   st_transform(crs = 3414)\n\nIn order to preserve this data, we will now save it to rds.\n\n# saveRDS(resale_prices_2021_22_sf, file=\"data/rds/resale_prices_2021_22_sf.rds\")\n# saveRDS(resale_prices_2023_sf, file=\"data/rds/resale_prices_2023_sf.rds\")\n\nAnd now we can load it.\n\nresale_prices_2021_22_sf <- read_rds(\"data/rds/resale_prices_2021_22_sf.rds\")\nresale_prices_2023_sf <- read_rds(\"data/rds/resale_prices_2023_sf.rds\")\n\nWe can now display our data on the map.\n\ntmap_mode(\"view\")\ntm_shape(mpsz) +\n  tm_polygons() +\ntm_shape(resale_prices_2021_22_sf)+ \n  tm_dots(col = \"resale_price\",\n             size = 0.01,\n             border.col = \"black\",\n             border.lwd = 0.5) +\n  tmap_options(check.and.fix = TRUE) +\n  tm_view(set.zoom.limits = c(11, 16))\n\n\n\n\n\n\n\ntmap_mode(\"view\")\ntm_shape(mpsz) +\n  tm_polygons() +\ntm_shape(resale_prices_2023_sf)+ \n  tm_dots(col = \"resale_price\",\n             size = 0.01,\n             border.col = \"black\",\n             border.lwd = 0.5) +\n  tmap_options(check.and.fix = TRUE) +\n  tm_view(set.zoom.limits = c(11, 16))"
+  },
+  {
+    "objectID": "Take-home_Exercise/TH3/data/geospatial/MPSZ-2019/MPSZ-2019.html",
+    "href": "Take-home_Exercise/TH3/data/geospatial/MPSZ-2019/MPSZ-2019.html",
+    "title": "IS415-GAA",
+    "section": "",
+    "text": "<!DOCTYPE qgis PUBLIC ‘http://mrcc.com/qgis.dtd’ ‘SYSTEM’>     dataset\n\n\n        0 0     false"
+  },
+  {
+    "objectID": "In-class_Exercise/Wk10/data/geospatial/MPSZ-2019.html",
+    "href": "In-class_Exercise/Wk10/data/geospatial/MPSZ-2019.html",
+    "title": "IS415-GAA",
+    "section": "",
+    "text": "<!DOCTYPE qgis PUBLIC ‘http://mrcc.com/qgis.dtd’ ‘SYSTEM’>     dataset\n\n\n        0 0     false"
   }
 ]
