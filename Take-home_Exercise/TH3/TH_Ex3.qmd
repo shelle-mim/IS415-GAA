@@ -22,7 +22,7 @@ use at least 2, the OLS method vs at least one GWR
 
 ## Background and Objective
 
-In this exercise, we will be building a predictive model
+In this exercise, we will be building a predictive model.
 
 ## Defining the Study Period
 
@@ -34,40 +34,148 @@ For this exercise, we will be using the below data sets:
 
 ### Geospatial
 
+-   Singapore Master Plan 2019 Subzone Boundary
+-   Location of Eldercare Centres (from data.gov.sg)
+-   Location of Hawker Centres (from data.gov.sg)
+-   Location of MRT Exits (from LTA Data Mall)
+-   Location of Parks (from data.gov.sg)
+-   Location of Supermarkets (from data.gov.sg)
+-   Location of Kindergartens (from data.gov.sg)
+-   Location of Childcare (from data.gov.sg)
+-   Location of Bus Stops (from LTA Data Mall)
+
 ### Aspatial
 
 -   HDB Resale Flat Prices (from data.gov.sg)
+-   Primary Schools as of 2017 (from data.world)
+
+### Others
+
+-   Best Primary Schools 2021 (from salary.sg)
+
+-   Mall Coordinates WebScraper (from https://github.com/ValaryLim/Mall-Coordinates-Web-Scraper)
 
 # Imports
 
 ## Import Packages
 
 ```{r}
-pacman::p_load(olsrr, corrplot, ggpubr, sf, spdep, GWmodel, tmap, tidyverse, gtsummary, httr, onemapsgapi, jsonlite)
+pacman::p_load(olsrr, corrplot, ggpubr, sf, spdep, GWmodel, tmap, tidyverse, gtsummary, httr, onemapsgapi, jsonlite, units, matrixStats, rvest, SpatialML, Metrics)
 ```
 
 ## Import Geospatial Data
 
-### Singapore Master Plan 2014 Subzone Boundary Dataset
+### Singapore Master Plan 2019 Subzone Boundary Dataset
 
 ```{r}
-mpsz = st_read(dsn = "data/geospatial/MP14_SUBZONE", layer = "MP14_SUBZONE_WEB_PL")
+mpsz = st_read(dsn = "data/geospatial/MPSZ-2019", layer = "MPSZ-2019")
 ```
 
 ```{r}
-mpsz <- st_transform(mpsz, 3414)
+st_crs(mpsz)
+```
+
+### Elder Care Centers Data Set
+
+```{r}
+eldercare = st_read(dsn = "data/geospatial/Eldercare", layer = "ELDERCARE")
 ```
 
 ```{r}
-tmap_mode("plot")
-tm_shape(mpsz) +
-  tm_polygons("PLN_AREA_N") +
-  tm_layout(legend.outside = TRUE) +
-  tmap_options(max.categories = 56)
+eldercare <- st_transform(eldercare, 3414)
 ```
 
 ```{r}
-unique(mpsz$PLN_AREA_N)
+st_crs(eldercare)
+```
+
+### Hawker Centers Data Set
+
+```{r}
+hawker_centre = st_read(dsn = "data/geospatial/HawkerCentres/hawker-centres.geojson")
+```
+
+```{r}
+hawker_centre <- st_transform(hawker_centre, 3414)
+```
+
+```{r}
+st_crs(hawker_centre)
+```
+
+### MRT Data Set
+
+```{r}
+mrt_exit = st_read(dsn = "data/geospatial/TrainStationExit", layer = "Train_Station_Exit_Layer")
+```
+
+```{r}
+mrt_exit <- st_transform(mrt_exit, 3414)
+```
+
+```{r}
+st_crs(mrt_exit)
+```
+
+### Parks Data Set
+
+```{r}
+parks = st_read(dsn = "data/geospatial/Parks/parks.kml")
+```
+
+```{r}
+parks <- st_transform(parks, 3414)
+```
+
+```{r}
+st_crs(parks)
+```
+
+### Supermarkets Data Set
+
+```{r}
+supermarkets = st_read(dsn = "data/geospatial/supermarkets.kml")
+```
+
+```{r}
+supermarkets <- st_transform(supermarkets, 3414)
+```
+
+```{r}
+st_crs(supermarkets)
+```
+
+### Kindergartens Data Set
+
+```{r}
+kindergartens = st_read(dsn = "data/geospatial/kindergartens.kml")
+```
+
+```{r}
+kindergartens <- st_transform(kindergartens, 3414)
+st_crs(kindergartens)
+```
+
+### Childcare Centers Data Set
+
+```{r}
+childcare = st_read(dsn = "data/geospatial/childcare.geojson")
+```
+
+```{r}
+childcare <- st_transform(childcare, 3414)
+st_crs(childcare)
+```
+
+### Bus Stops Data Set
+
+```{r}
+bus_stops = st_read(dsn = "data/geospatial/BusStop_Feb2023", layer = "BusStop")
+```
+
+```{r}
+bus_stops <- st_transform(bus_stops, 3414)
+st_crs(bus_stops)
 ```
 
 ## Import Aspatial Data
@@ -92,13 +200,63 @@ resale_prices_2023 <- resale_prices_2017_onwards %>%
   filter(month > '2022-12')
 ```
 
+### Shopping Malls Data Set
+
+```{r}
+malls = read_csv("data/aspatial/mall_coordinates_updated.csv")
+```
+
+```{r}
+glimpse(malls)
+```
+
+```{r}
+malls <- st_as_sf(malls, 
+                  coords = c("longitude", "latitude"), 
+                  crs=4326) %>%
+  st_transform(crs = 3414)
+```
+
+```{r}
+tmap_mode("plot")
+tm_shape(mpsz) +
+  tm_polygons() +
+tm_shape(malls)+ 
+  tm_dots()
+```
+
+### Primary Schools Data Set
+
+```{r}
+pri_schs = read_csv("data/aspatial/primaryschoolsg.csv")
+```
+
+```{r}
+glimpse(pri_schs)
+```
+
+```{r}
+pri_schs <- pri_schs %>% dplyr::select(c(0:1, 7:8))
+```
+
+```{r}
+pri_schs <- st_as_sf(pri_schs, 
+                     coords = c("Longitude", "Latitude"), 
+                     crs=4326) %>%
+  st_transform(crs = 3414)
+```
+
+```{r}
+tmap_mode("plot")
+tm_shape(mpsz) +
+  tm_polygons() +
+tm_shape(pri_schs)+ 
+  tm_dots()
+```
+
 # Data Wrangling
 
-## Geospatial Data
-
-## Aspatial Data
-
-### HDB Resale Flat Prices
+## Core DataSet: HDB Resale Flat Prices
 
 Firstly, we see that our dataset only gives us the street name and block of the resale flats. In order to turn this into geospatial data, we will need the longitude and latitude of the each flat.
 
@@ -224,4 +382,948 @@ tm_shape(resale_prices_2023_sf)+
              border.lwd = 0.5) +
   tmap_options(check.and.fix = TRUE) +
   tm_view(set.zoom.limits = c(11, 16))
+```
+
+## Geospatial Data
+
+### Proximity to CBD
+
+In order to get the distance to the CBD, we must first identify where the CBD is, then find its centre. We can then calculate the distance. Let us start by looking at the Planning Areas in our dataset.
+
+```{r}
+unique(mpsz$PLN_AREA_N)
+```
+
+As we can see, we already have the Downtown Core as a Planning Area. And as said by the [Urban Redevelopment Authority](https://www.ura.gov.sg/Corporate/Guidelines/Urban-Design/Downtown-Core), "The Downtown Core Planning Area is the economic and cultural heart of Singapore", and encompasses the Central Business District. As such, we will be using the centroid of the
+
+```{r}
+# Extract Downtown core
+downtown_core <- mpsz %>%
+  filter(PLN_AREA_N == "DOWNTOWN CORE") %>% 
+  st_combine()
+```
+
+```{r}
+# Get Centroid
+downtown_core_centroid <- downtown_core %>%
+  st_centroid()
+
+downtown_core_centroid
+```
+
+```{r}
+# Plot
+tmap_mode("plot")
+tm_shape(mpsz) +
+  tm_polygons() +
+  tmap_options(check.and.fix = TRUE) +
+tm_shape(downtown_core) +
+  tm_fill(col = "pink") +
+tm_shape(downtown_core_centroid) + 
+  tm_dots() +
+  tm_view(set.zoom.limits = c(11, 16))
+```
+
+Great! We now have our centroid that we can use to calculate the distance to. We can now use the coordinates of our centroid and makew an sf dataframe for later use.
+
+```{r}
+st_coordinates(downtown_core_centroid)
+```
+
+```{r}
+lat <- 30335.19
+lng <- 129721.45
+
+downtown_core_centroid_sf <- data.frame(lat, lng) %>%
+  st_as_sf(coords = c("lng", "lat"), crs=3414)
+```
+
+With that done, we can now calculate the Proximity to CBD. But before we do that, we need to change our centroid into an sf dataframe for comparison. We will do this altogether for all the seperate data sets in a later section for simplicity and data consistency.
+
+### Proximity to Good Primary School
+
+For this metric, there were no readily available data sets. As such, we will attain this information via webscraping. We will be scraping <https://www.salary.sg/2021/best-primary-schools-2021-by-popularity/>, which provides a ranking of the Best Primary Schools by popularity.
+
+```{r}
+url <- "https://www.salary.sg/2021/best-primary-schools-2021-by-popularity/"
+
+good_pri <- data.frame()
+
+schools <- read_html(url) %>%
+  html_nodes(xpath = paste('//*[@id="post-3068"]/div[3]/div/div/ol/li') ) %>%
+  html_text()
+
+for (i in (schools)){
+  sch_name <- toupper(gsub(" – .*","",i))
+  sch_name <- gsub("\\(PRIMARY SECTION)","",sch_name)
+  sch_name <- trimws(sch_name)
+  new_row <- data.frame(pri_sch_name=sch_name)
+  # Add the row
+  good_pri <- rbind(good_pri, new_row)
+}
+```
+
+Since we are looking out for good primary schools, let us select the first 20 results that we will find the proximity to for our analysis.
+
+```{r}
+top_pri_sch <- head(good_pri, 20)
+```
+
+Since we already have the coordinates from our primary school data, we can left_join in order to add the coordinates to our list of top primary schools. But first, we need to do a little data preparation to make sure the columns match.
+
+```{r}
+top_pri_sch$pri_sch_name[!tolower(top_pri_sch$pri_sch_name) %in% tolower(pri_schs$Name)]
+```
+
+It seems the issue lies with different apostrophes being used, as well as Catholic High School. We can easily change those to match our primary school dataset.
+
+```{r}
+top_pri_sch$pri_sch_name <- gsub('’', "'", top_pri_sch$pri_sch_name)
+top_pri_sch$pri_sch_name[top_pri_sch$pri_sch_name == 'CATHOLIC HIGH SCHOOL'] <- 'CATHOLIC HIGH SCHOOL (PRIMARY)'
+```
+
+Now that that is settled, we can join the data to get out coordinates.
+
+```{r}
+# Convert to lowercase for easy comparison
+top_pri_sch$pri_sch_name <- tolower(top_pri_sch$pri_sch_name)
+
+# Function to do our join for us
+join_lowercase_name <- function(left,right){
+  right$Name <- tolower(right$Name)
+  inner_join(left,right,by=c("pri_sch_name" = "Name"))
+}
+
+top_pri_sch <- join_lowercase_name(top_pri_sch, pri_schs) 
+```
+
+```{r}
+top_pri_sch <- st_as_sf(top_pri_sch, crs=3414)
+st_crs(top_pri_sch)
+```
+
+## Proximity and Frequency Calculations
+
+With all our data prepared and ready for use, we can now move on to calculations.
+
+Let us now write functions to calculate the proximity and frequency of the relevant features to our resale price data:
+
+```{r}
+proximity <- function(df1, df2, varname) {
+  dist_matrix <- st_distance(df1, df2) %>%
+    drop_units()
+  df1[,varname] <- rowMins(dist_matrix)
+  return(df1)
+}
+
+num_radius <- function(df1, df2, varname, radius) {
+  dist_matrix <- st_distance(df1, df2) %>%
+    drop_units() %>%
+    as.data.frame()
+  df1[,varname] <- rowSums(dist_matrix <= radius)
+  return(df1)
+}
+```
+
+With these, we can do our calculations all at once.
+
+```{r}
+# resale_full_details_2021_22_sf <-
+#   proximity(resale_prices_2021_22_sf, downtown_core_centroid_sf, "PROX_CBD") %>%
+#   proximity(., eldercare, "PROX_ELDERCARE") %>%
+#   proximity(., hawker_centre, "PROX_HAWKER_CENTRE") %>%
+#   proximity(., mrt_exit, "PROX_MRT") %>%
+#   proximity(., parks, "PROX_PARK") %>%
+#   proximity(., top_pri_sch, "PROX_GOOD_PRI_SCH") %>%
+#   proximity(., malls, "PROX_MALL") %>%
+#   proximity(., supermarkets, "PROX_SUPERMARKET")
+# 
+# resale_full_details_2023_sf <- 
+#   proximity(resale_prices_2023_sf, downtown_core_centroid_sf, "PROX_CBD") %>%
+#   proximity(., eldercare, "PROX_ELDERCARE") %>%
+#   proximity(., hawker_centre, "PROX_HAWKER_CENTRE") %>%
+#   proximity(., mrt_exit, "PROX_MRT") %>%
+#   proximity(., parks, "PROX_PARK") %>%
+#   proximity(., top_pri_sch, "PROX_GOOD_PRI_SCH") %>%
+#   proximity(., malls, "PROX_MALL") %>%
+#   proximity(., supermarkets, "PROX_SUPERMARKET")
+```
+
+```{r}
+# resale_full_details_2021_22_sf <-
+#   num_radius(resale_prices_2021_22_sf, kindergartens, "NUM_KINDERGARTEN", 350) %>%
+#   num_radius(., childcare, "NUM_CHILDCARE", 350) %>%
+#   num_radius(., bus_stops, "NUM_BUS_STOP", 350) %>%
+#   num_radius(., pri_schs, "NUM_PRI_SCH", 1000)
+# 
+# resale_full_details_2023_sf <-
+#   num_radius(resale_prices_2023_sf, kindergartens, "NUM_KINDERGARTEN", 350) %>%
+#   num_radius(., childcare, "NUM_CHILDCARE", 350) %>%
+#   num_radius(., bus_stops, "NUM_BUS_STOP", 350) %>%
+#   num_radius(., pri_schs, "NUM_PRI_SCH", 1000)
+```
+
+Since these calculations take a while to load, lets save everything to RDS.
+
+```{r}
+# saveRDS(resale_full_details_2021_22_sf, file="data/rds/resale_full_details_2021_22_sf.rds")
+# saveRDS(resale_full_details_2023_sf, file="data/rds/resale_full_details_2023_sf.rds")
+
+resale_full_details_2021_22_sf <- read_rds("data/rds/resale_full_details_2021_22_sf.rds")
+resale_full_details_2023_sf <- read_rds("data/rds/resale_full_details_2023_sf.rds")
+```
+
+## Data Preparation
+
+Before we start on our linear regression, we first need to transform our data into an appropriate format that the model for the regression model to interpret. As such, we will be changing all our categorical variables into numerical variables via encoding.
+
+### Encoding Variables
+
+Let us first look at what we are working with.
+
+```{r}
+glimpse(resale_full_details_2021_22_sf)
+```
+
+While all our freshly calculated data looks good, we can see some of the variables from our resale dataset still need to further processed, namely **storey_range** and **remaining_lease**. We also have to use **lease_commence_date** and **month** in order to determine the age of the unit.
+
+Remaining lease is the easiest to fix, we can simplify it to just the number of years left, and cast it to a number.
+
+```{r}
+resale_full_details_2021_22_sf$remaining_lease <- as.numeric(
+  word(resale_full_details_2021_22_sf$remaining_lease, 1))
+
+resale_full_details_2023_sf$remaining_lease <- as.numeric(
+  word(resale_full_details_2023_sf$remaining_lease, 1))
+```
+
+Storey Range is slightly more difficult, as we will have to transform the range into an ordinal variable.
+
+```{r}
+unique(resale_full_details_2021_22_sf$storey_range)
+```
+
+However, we can see that the storey ranges fall very nicely into ranges of 3. As such, we can transform them into ordinal values by taking the last word in the string, converting it into a number, then dividing by 3.
+
+```{r}
+resale_full_details_2021_22_sf$storey_range <- (as.numeric(
+  word(resale_full_details_2021_22_sf$storey_range, -1)) / 3)
+
+resale_full_details_2023_sf$storey_range <- (as.numeric(
+  word(resale_full_details_2023_sf$storey_range, -1)) / 3)
+```
+
+Lastly, we have the Age of Unit to calculate. We can get this value in years by taking the **month** minus the **lease_commence_date**.
+
+```{r}
+resale_full_details_2021_22_sf <- resale_full_details_2021_22_sf %>%
+  add_column(age_of_unit = NA) %>%
+  mutate(age_of_unit = (
+    as.numeric(substr(resale_full_details_2021_22_sf$month, 1, 4)) - 
+      as.numeric(resale_full_details_2021_22_sf$lease_commence_date)))
+
+resale_full_details_2023_sf <- resale_full_details_2023_sf %>%
+  add_column(age_of_unit = NA) %>%
+  mutate(age_of_unit = (
+    as.numeric(substr(resale_full_details_2023_sf$month, 1, 4)) -
+      as.numeric(resale_full_details_2023_sf$lease_commence_date)))
+```
+
+Let's just double check that all our calculations went well:
+
+```{r}
+sum(is.na(resale_full_details_2021_22_sf$age_of_unit))
+sum(is.na(resale_full_details_2023_sf$age_of_unit))
+```
+
+### Separate into Sub-Markets
+
+Now that we have encoded all the necessary values, we can drop all other columns. However, before we do this, we need to separate our data into our 3 sub-markets of interest: 3-room, 4-room and 5-room flats.
+
+```{r}
+three_room_2021_22_sf <- resale_full_details_2021_22_sf %>%
+  filter(flat_type == '3 ROOM')
+four_room_2021_22_sf <- resale_full_details_2021_22_sf %>%
+  filter(flat_type == '4 ROOM')
+five_room_2021_22_sf <- resale_full_details_2021_22_sf %>%
+  filter(flat_type == '5 ROOM')
+
+three_room_2023_sf <- resale_full_details_2023_sf %>%
+  filter(flat_type == '3 ROOM')
+four_room_2023_sf <- resale_full_details_2023_sf %>%
+  filter(flat_type == '4 ROOM')
+five_room_2023_sf <- resale_full_details_2023_sf %>%
+  filter(flat_type == '5 ROOM')
+```
+
+### Remove Unnecessary Columns
+
+Now that we have encoded all the necessary values, we can drop all other columns before saving this to rds for us to work on in our regression section later.
+
+```{r}
+three_room_2021_22_sf <- three_room_2021_22_sf %>%
+  dplyr::select(c(6:7, 10:25))
+four_room_2021_22_sf <- four_room_2021_22_sf %>%
+  dplyr::select(c(6:7, 10:25))
+five_room_2021_22_sf <- five_room_2021_22_sf %>%
+  dplyr::select(c(6:7, 10:25))
+
+three_room_2023_sf <- three_room_2023_sf %>%
+  dplyr::select(c(6:7, 10:25))
+four_room_2023_sf <- four_room_2023_sf %>%
+  dplyr::select(c(6:7, 10:25))
+five_room_2023_sf <- five_room_2023_sf %>%
+  dplyr::select(c(6:7, 10:25))
+```
+
+```{r}
+# saveRDS(three_room_2021_22_sf, file="data/rds/three_room_2021_22_sf.rds")
+# saveRDS(four_room_2021_22_sf, file="data/rds/four_room_2021_22_sf.rds")
+# saveRDS(five_room_2021_22_sf, file="data/rds/five_room_2021_22_sf.rds")
+# 
+# saveRDS(three_room_2023_sf, file="data/rds/three_room_2023_sf.rds")
+# saveRDS(four_room_2023_sf, file="data/rds/four_room_2023_sf.rds")
+# saveRDS(five_room_2023_sf, file="data/rds/five_room_2023_sf.rds")
+
+three_room_2021_22_sf <- read_rds("data/rds/three_room_2021_22_sf.rds")
+four_room_2021_22_sf <- read_rds("data/rds/four_room_2021_22_sf.rds")
+five_room_2021_22_sf <- read_rds("data/rds/five_room_2021_22_sf.rds")
+
+three_room_2023_sf <- read_rds("data/rds/three_room_2023_sf.rds")
+four_room_2023_sf <- read_rds("data/rds/four_room_2023_sf.rds")
+five_room_2023_sf <- read_rds("data/rds/five_room_2023_sf.rds")
+```
+
+# Exploratory Data Analysis
+
+## Statistical Visualisation
+
+### Resale Price
+
+Before we jump into our analysis, let us first do some visualization on our test data, starting with our resale prices.
+
+```{r}
+# Remove scientific notation
+options(scipen = 999)
+```
+
+::: panel-tabset
+### 3 Room
+
+```{r}
+ggplot(data=three_room_2021_22_sf, aes(x=`resale_price`)) +
+  geom_histogram(bins=20, color="black", fill="pink") +
+    labs(title = "Distribution of Resale Prices for 3 Room Flats (2021 - 2022)",
+         x = "Resale Prices",
+         y = 'Frequency') +
+  scale_x_continuous(labels = scales::comma) +
+  scale_y_continuous(labels = scales::comma)
+```
+
+```{r}
+ggplot(data = three_room_2021_22_sf, aes(x = '', y = resale_price)) +
+  geom_boxplot() + 
+  labs(x='', y='3 Room Resale Flat Prices')
+```
+
+### 4 Room
+
+```{r}
+ggplot(data=four_room_2021_22_sf, aes(x=`resale_price`)) +
+  geom_histogram(bins=20, color="black", fill="pink") +
+    labs(title = "Distribution of Resale Prices for 3 Room Flats (2021 - 2022)",
+         x = "Resale Prices",
+         y = 'Frequency') +
+  scale_x_continuous(labels = scales::comma) +
+  scale_y_continuous(labels = scales::comma)
+```
+
+```{r}
+ggplot(data = four_room_2021_22_sf, aes(x = '', y = resale_price)) +
+  geom_boxplot() + 
+  labs(x='', y='3 Room Resale Flat Prices')
+```
+
+### 5 Room
+
+```{r}
+ggplot(data=five_room_2021_22_sf, aes(x=`resale_price`)) +
+  geom_histogram(bins=20, color="black", fill="pink") +
+    labs(title = "Distribution of Resale Prices for 3 Room Flats (2021 - 2022)",
+         x = "Resale Prices",
+         y = 'Frequency') +
+  scale_x_continuous(labels = scales::comma) +
+  scale_y_continuous(labels = scales::comma)
+```
+
+```{r}
+ggplot(data = five_room_2021_22_sf, aes(x = '', y = resale_price)) +
+  geom_boxplot() + 
+  labs(x='', y='3 Room Resale Flat Prices')
+```
+:::
+
+As we can see, all 3 have an distinct right skew. This indicates that more resale flats were bought at relatively lower price.
+
+From both our histograms and boxplots, we can also see the mode of the data increasing gradually as we move from 3 to 4 to 5 rooms. This aligns with out expectations, as a flat with more rooms should on average cost more than one with fewer.
+
+Although we do see quite a lot of outliers in our boxplots (with the highest prices being well over 2-3 times the mean price), in general we see that 3 room flats being in about the 300k - 400k range, 4 room flats being in the 450k-550k range, and 5 rooms flats in the 500k-700k range.
+
+### Flat Factors
+
+Let us look at the distribution of our Resale Flat factors, namely floor_area_sqm, storey_range, remaining_lease and age_of_unit.
+
+::: panel-tabset
+## 3 Room
+
+```{r}
+floor_area_plot <- ggplot(data = three_room_2021_22_sf, aes(x = `floor_area_sqm`)) + 
+  geom_histogram(bins=20, color="black", fill = 'pink')
+
+storey_range_plot <- ggplot(data = three_room_2021_22_sf, aes(x = `storey_range`)) + 
+  geom_histogram(bins=20, color="black", fill = 'pink')
+
+remaining_lease_plot <- ggplot(data = three_room_2021_22_sf, aes(x = `remaining_lease`)) + 
+  geom_histogram(bins=20, color="black", fill = 'pink')
+
+unit_age_plot <- ggplot(data = three_room_2021_22_sf, aes(x = `age_of_unit`)) + 
+  geom_histogram(bins=20, color="black", fill = 'pink')
+
+ggarrange(floor_area_plot, storey_range_plot, remaining_lease_plot, unit_age_plot, ncol = 2, nrow = 2)
+```
+
+## 4 Room
+
+```{r}
+floor_area_plot <- ggplot(data = four_room_2021_22_sf, aes(x = `floor_area_sqm`)) + 
+  geom_histogram(bins=20, color="black", fill = 'pink')
+
+storey_range_plot <- ggplot(data = four_room_2021_22_sf, aes(x = `storey_range`)) + 
+  geom_histogram(bins=20, color="black", fill = 'pink')
+
+remaining_lease_plot <- ggplot(data = four_room_2021_22_sf, aes(x = `remaining_lease`)) + 
+  geom_histogram(bins=20, color="black", fill = 'pink')
+
+unit_age_plot <- ggplot(data = four_room_2021_22_sf, aes(x = `age_of_unit`)) + 
+  geom_histogram(bins=20, color="black", fill = 'pink')
+
+ggarrange(floor_area_plot, storey_range_plot, remaining_lease_plot, unit_age_plot, ncol = 2, nrow = 2)
+```
+
+## 5 Room
+
+```{r}
+floor_area_plot <- ggplot(data = five_room_2021_22_sf, aes(x = `floor_area_sqm`)) + 
+  geom_histogram(bins=20, color="black", fill = 'pink')
+
+storey_range_plot <- ggplot(data = five_room_2021_22_sf, aes(x = `storey_range`)) + 
+  geom_histogram(bins=20, color="black", fill = 'pink')
+
+remaining_lease_plot <- ggplot(data = five_room_2021_22_sf, aes(x = `remaining_lease`)) + 
+  geom_histogram(bins=20, color="black", fill = 'pink')
+
+unit_age_plot <- ggplot(data = five_room_2021_22_sf, aes(x = `age_of_unit`)) + 
+  geom_histogram(bins=20, color="black", fill = 'pink')
+
+ggarrange(floor_area_plot, storey_range_plot, remaining_lease_plot, unit_age_plot, ncol = 2, nrow = 2)
+```
+:::
+
+### Locational Factors
+
+And lastly, we can visualise our locational factors; PROX_CBD, PROX_ELDERCARE, PROX_HAWKER_CENTRE, PROX_MRT, PROX_PARK, PROX_GOOD_PRI_SCH, PROX_MALL, PROX_SUPERMARKET, NUM_KINDERGARTEN, NUM_CHILDCARE, NUM_BUS_STOP and NUM_PRI_SCH.
+
+::: panel-tabset
+### 3 Room
+
+```{r}
+PROX_CBD_plot <- ggplot(data = three_room_2021_22_sf, aes(x = `PROX_CBD`)) + 
+  geom_histogram(bins=20, color="black", fill = 'pink')
+
+PROX_ELDERCARE_plot <- ggplot(data = three_room_2021_22_sf, aes(x = `PROX_ELDERCARE`)) + 
+  geom_histogram(bins=20, color="black", fill = 'pink')
+
+PROX_HAWKER_CENTRE_plot <- ggplot(data = three_room_2021_22_sf, 
+                                  aes(x = `PROX_HAWKER_CENTRE`)) + 
+  geom_histogram(bins=20, color="black", fill = 'pink')
+
+PROX_MRT_plot <- ggplot(data = three_room_2021_22_sf, aes(x = `PROX_MRT`)) + 
+  geom_histogram(bins=20, color="black", fill = 'pink')
+
+PROX_PARK_plot <- ggplot(data = three_room_2021_22_sf, aes(x = `PROX_PARK`)) + 
+  geom_histogram(bins=20, color="black", fill = 'pink')
+
+PROX_GOOD_PRI_SCH_plot <- ggplot(data = three_room_2021_22_sf, 
+                                 aes(x = `PROX_GOOD_PRI_SCH`)) + 
+  geom_histogram(bins=20, color="black", fill = 'pink')
+
+PROX_MALL_plot <- ggplot(data = three_room_2021_22_sf, 
+                                  aes(x = `PROX_MALL`)) + 
+  geom_histogram(bins=20, color="black", fill = 'pink')
+
+PROX_SUPERMARKET_plot <- ggplot(data = three_room_2021_22_sf, 
+                                aes(x = `PROX_SUPERMARKET`)) + 
+  geom_histogram(bins=20, color="black", fill = 'pink')
+
+NUM_KINDERGARTEN_plot <- ggplot(data = three_room_2021_22_sf, 
+                                aes(x = `NUM_KINDERGARTEN`)) + 
+  geom_histogram(bins=20, color="black", fill = 'pink')
+
+NUM_CHILDCARE_plot <- ggplot(data = three_room_2021_22_sf, aes(x = `NUM_CHILDCARE`)) + 
+  geom_histogram(bins=20, color="black", fill = 'pink')
+
+NUM_BUS_STOP_plot <- ggplot(data = three_room_2021_22_sf, aes(x = `NUM_BUS_STOP`)) + 
+  geom_histogram(bins=20, color="black", fill = 'pink')
+
+NUM_PRI_SCH_plot <- ggplot(data = three_room_2021_22_sf, aes(x = `NUM_PRI_SCH`)) + 
+  geom_histogram(bins=20, color="black", fill = 'pink')
+
+ggarrange(PROX_CBD_plot, PROX_ELDERCARE_plot, PROX_HAWKER_CENTRE_plot, PROX_MRT_plot, 
+          PROX_PARK_plot, PROX_GOOD_PRI_SCH_plot, PROX_MALL_plot, 
+          PROX_SUPERMARKET_plot, NUM_KINDERGARTEN_plot, NUM_CHILDCARE_plot, 
+          NUM_BUS_STOP_plot, NUM_PRI_SCH_plot, ncol = 3, nrow = 4)
+```
+
+### 4 Room
+
+```{r}
+PROX_CBD_plot <- ggplot(data = four_room_2021_22_sf, aes(x = `PROX_CBD`)) + 
+  geom_histogram(bins=20, color="black", fill = 'pink')
+
+PROX_ELDERCARE_plot <- ggplot(data = four_room_2021_22_sf, aes(x = `PROX_ELDERCARE`)) + 
+  geom_histogram(bins=20, color="black", fill = 'pink')
+
+PROX_HAWKER_CENTRE_plot <- ggplot(data = four_room_2021_22_sf, 
+                                  aes(x = `PROX_HAWKER_CENTRE`)) + 
+  geom_histogram(bins=20, color="black", fill = 'pink')
+
+PROX_MRT_plot <- ggplot(data = four_room_2021_22_sf, aes(x = `PROX_MRT`)) + 
+  geom_histogram(bins=20, color="black", fill = 'pink')
+
+PROX_PARK_plot <- ggplot(data = four_room_2021_22_sf, aes(x = `PROX_PARK`)) + 
+  geom_histogram(bins=20, color="black", fill = 'pink')
+
+PROX_GOOD_PRI_SCH_plot <- ggplot(data = four_room_2021_22_sf, 
+                                 aes(x = `PROX_GOOD_PRI_SCH`)) + 
+  geom_histogram(bins=20, color="black", fill = 'pink')
+
+PROX_MALL_plot <- ggplot(data = four_room_2021_22_sf, 
+                                  aes(x = `PROX_MALL`)) + 
+  geom_histogram(bins=20, color="black", fill = 'pink')
+
+PROX_SUPERMARKET_plot <- ggplot(data = four_room_2021_22_sf, 
+                                aes(x = `PROX_SUPERMARKET`)) + 
+  geom_histogram(bins=20, color="black", fill = 'pink')
+
+NUM_KINDERGARTEN_plot <- ggplot(data = four_room_2021_22_sf, 
+                                aes(x = `NUM_KINDERGARTEN`)) + 
+  geom_histogram(bins=20, color="black", fill = 'pink')
+
+NUM_CHILDCARE_plot <- ggplot(data = four_room_2021_22_sf, aes(x = `NUM_CHILDCARE`)) + 
+  geom_histogram(bins=20, color="black", fill = 'pink')
+
+NUM_BUS_STOP_plot <- ggplot(data = four_room_2021_22_sf, aes(x = `NUM_BUS_STOP`)) + 
+  geom_histogram(bins=20, color="black", fill = 'pink')
+
+NUM_PRI_SCH_plot <- ggplot(data = four_room_2021_22_sf, aes(x = `NUM_PRI_SCH`)) + 
+  geom_histogram(bins=20, color="black", fill = 'pink')
+
+ggarrange(PROX_CBD_plot, PROX_ELDERCARE_plot, PROX_HAWKER_CENTRE_plot, PROX_MRT_plot, 
+          PROX_PARK_plot, PROX_GOOD_PRI_SCH_plot, PROX_MALL_plot, 
+          PROX_SUPERMARKET_plot, NUM_KINDERGARTEN_plot, NUM_CHILDCARE_plot, 
+          NUM_BUS_STOP_plot, NUM_PRI_SCH_plot, ncol = 3, nrow = 4)
+```
+
+### 5 Room
+
+```{r}
+PROX_CBD_plot <- ggplot(data = five_room_2021_22_sf, aes(x = `PROX_CBD`)) + 
+  geom_histogram(bins=20, color="black", fill = 'pink')
+
+PROX_ELDERCARE_plot <- ggplot(data = five_room_2021_22_sf, aes(x = `PROX_ELDERCARE`)) + 
+  geom_histogram(bins=20, color="black", fill = 'pink')
+
+PROX_HAWKER_CENTRE_plot <- ggplot(data = five_room_2021_22_sf, 
+                                  aes(x = `PROX_HAWKER_CENTRE`)) + 
+  geom_histogram(bins=20, color="black", fill = 'pink')
+
+PROX_MRT_plot <- ggplot(data = five_room_2021_22_sf, aes(x = `PROX_MRT`)) + 
+  geom_histogram(bins=20, color="black", fill = 'pink')
+
+PROX_PARK_plot <- ggplot(data = five_room_2021_22_sf, aes(x = `PROX_PARK`)) + 
+  geom_histogram(bins=20, color="black", fill = 'pink')
+
+PROX_GOOD_PRI_SCH_plot <- ggplot(data = five_room_2021_22_sf, 
+                                 aes(x = `PROX_GOOD_PRI_SCH`)) + 
+  geom_histogram(bins=20, color="black", fill = 'pink')
+
+PROX_MALL_plot <- ggplot(data = five_room_2021_22_sf, 
+                                  aes(x = `PROX_MALL`)) + 
+  geom_histogram(bins=20, color="black", fill = 'pink')
+
+PROX_SUPERMARKET_plot <- ggplot(data = five_room_2021_22_sf, 
+                                aes(x = `PROX_SUPERMARKET`)) + 
+  geom_histogram(bins=20, color="black", fill = 'pink')
+
+NUM_KINDERGARTEN_plot <- ggplot(data = five_room_2021_22_sf, 
+                                aes(x = `NUM_KINDERGARTEN`)) + 
+  geom_histogram(bins=20, color="black", fill = 'pink')
+
+NUM_CHILDCARE_plot <- ggplot(data = five_room_2021_22_sf, aes(x = `NUM_CHILDCARE`)) + 
+  geom_histogram(bins=20, color="black", fill = 'pink')
+
+NUM_BUS_STOP_plot <- ggplot(data = five_room_2021_22_sf, aes(x = `NUM_BUS_STOP`)) + 
+  geom_histogram(bins=20, color="black", fill = 'pink')
+
+NUM_PRI_SCH_plot <- ggplot(data = five_room_2021_22_sf, aes(x = `NUM_PRI_SCH`)) + 
+  geom_histogram(bins=20, color="black", fill = 'pink')
+
+ggarrange(PROX_CBD_plot, PROX_ELDERCARE_plot, PROX_HAWKER_CENTRE_plot, PROX_MRT_plot, 
+          PROX_PARK_plot, PROX_GOOD_PRI_SCH_plot, PROX_MALL_plot, 
+          PROX_SUPERMARKET_plot, NUM_KINDERGARTEN_plot, NUM_CHILDCARE_plot, 
+          NUM_BUS_STOP_plot, NUM_PRI_SCH_plot, ncol = 3, nrow = 4)
+```
+:::
+
+## Spatial Visualisation
+
+Let us quickly revisit the spatial visualisation of our resale price data.
+
+::: panel-tabset
+### 3 Room
+
+```{r}
+tmap_mode("view")
+tm_shape(mpsz) +
+  tm_polygons() +
+tm_shape(three_room_2021_22_sf)+ 
+  tm_dots(col = "resale_price",
+             size = 0.01,
+             border.col = "black",
+             border.lwd = 0.5) +
+  tmap_options(check.and.fix = TRUE) +
+  tm_view(set.zoom.limits = c(11, 16))
+```
+
+### 4 Room
+
+```{r}
+tmap_mode("view")
+tm_shape(mpsz) +
+  tm_polygons() +
+tm_shape(four_room_2021_22_sf)+ 
+  tm_dots(col = "resale_price",
+             size = 0.01,
+             border.col = "black",
+             border.lwd = 0.5) +
+  tmap_options(check.and.fix = TRUE) +
+  tm_view(set.zoom.limits = c(11, 16))
+```
+
+### 5 Room
+
+```{r}
+tmap_mode("view")
+tm_shape(mpsz) +
+  tm_polygons() +
+tm_shape(five_room_2021_22_sf)+ 
+  tm_dots(col = "resale_price",
+             size = 0.01,
+             border.col = "black",
+             border.lwd = 0.5) +
+  tmap_options(check.and.fix = TRUE) +
+  tm_view(set.zoom.limits = c(11, 16))
+```
+:::
+
+From both our statistical and spatial visualisations, we can see that our 4 room flat dataset is the richest both in terms of the amount of data, as well as the distribution of data. As such, we will be focusing on 4 room flats for our machine learning models.
+
+## Correlation Matrix
+
+Before we start any model training, let us check for any multicolinearity in our 4 room data set. To do this, we will be using a correlation matrix to visualise the relationship between each pair of factors.
+
+```{r}
+four_room_nogeo <- four_room_2021_22_sf %>% st_drop_geometry()
+
+corrplot(cor(four_room_nogeo), 
+                   diag = FALSE, 
+                   order = "AOE",
+                   tl.pos = "td", 
+                   tl.cex = 0.5, 
+                   method = "number", 
+                   type = "upper")
+```
+
+From this correlation plot, we can see that all our factors have a relatively low correlation (less than 0.6 and greater than -0.6) except for **remaining_lease** and **age_of_unit**, which have an extremely negative correlation of -1. This makes sense, as typically all HDB flats have a 99 year lease and therefore the age of the flat would be directly related to the remaining lease (would add up to 99).
+
+We must therefore remove one of these two factors. We will be removing the age_of_unit.
+
+```{r}
+train_data <- four_room_2021_22_sf %>%
+  dplyr::select(, 0:17)
+
+test_data <- four_room_2023_sf %>%
+  dplyr::select(, 0:17)
+```
+
+```{r}
+saveRDS(train_data, file="data/rds/train_data.rds")
+saveRDS(test_data, file="data/rds/test_data.rds")
+```
+
+# Predictive Model Training
+
+```{r}
+train_data <- read_rds("data/rds/train_data.rds")
+test_data <- read_rds("data/rds/test_data.rds")
+```
+
+## Multiple Linear Regression
+
+```{r}
+# floor_area_sqm, storey_range, remaining_lease
+# 
+# PROX_CBD, PROX_ELDERCARE, PROX_HAWKER_CENTRE, PROX_MRT, PROX_PARK, PROX_GOOD_PRI_SCH, PROX_MALL, PROX_SUPERMARKET, NUM_KINDERGARTEN, NUM_CHILDCARE, NUM_BUS_STOP and NUM_PRI_SCH
+
+
+# price_mlr <- lm(resale_price ~ floor_area_sqm +
+#                   storey_range + remaining_lease +
+#                   PROX_CBD + PROX_ELDERCARE + PROX_HAWKER_CENTRE +
+#                   PROX_MRT + PROX_PARK + PROX_GOOD_PRI_SCH + PROX_MALL + 
+#                   PROX_SUPERMARKET + NUM_KINDERGARTEN +
+#                   NUM_CHILDCARE + NUM_BUS_STOP +
+#                   NUM_PRI_SCH,
+#                 data=train_data)
+```
+
+```{r}
+# write_rds(price_mlr, "data/model/price_mlr.rds" )
+price_mlr <- read_rds("data/model/price_mlr.rds")
+```
+
+```{r}
+summary(price_mlr)
+```
+
+## GWR
+
+```{r}
+train_data_sp <- as_Spatial(train_data)
+test_data_sp <- as_Spatial(test_data)
+
+train_data_sp
+```
+
+```{r}
+# bw_adaptive <- bw.gwr(resale_price ~ floor_area_sqm +
+#                   storey_range + remaining_lease +
+#                   PROX_CBD + PROX_ELDERCARE + PROX_HAWKER_CENTRE +
+#                   PROX_MRT + PROX_PARK + PROX_GOOD_PRI_SCH + PROX_MALL + 
+#                   PROX_SUPERMARKET + NUM_KINDERGARTEN +
+#                   NUM_CHILDCARE + NUM_BUS_STOP +
+#                   NUM_PRI_SCH,
+#                   data=train_data_sp,
+#                   approach="CV",
+#                   kernel="gaussian",
+#                   adaptive=TRUE,
+#                   longlat=FALSE)
+```
+
+```{r}
+# write_rds(bw_adaptive, "data/model/bw_adaptive.rds")
+bw_adaptive <- read_rds("data/model/bw_adaptive.rds")
+```
+
+```{r}
+bw_adaptive
+```
+
+```{r}
+# gwr_adaptive <- gwr.basic(formula = resale_price ~ 
+#                             floor_area_sqm + storey_range + remaining_lease +
+#                             PROX_CBD + PROX_ELDERCARE + PROX_HAWKER_CENTRE +
+#                             PROX_MRT + PROX_PARK + PROX_GOOD_PRI_SCH + PROX_MALL +
+#                             PROX_SUPERMARKET + NUM_KINDERGARTEN + NUM_CHILDCARE + 
+#                             NUM_BUS_STOP + NUM_PRI_SCH,
+#                           data=train_data_sp,
+#                           bw=bw_adaptive, 
+#                           kernel = 'gaussian', 
+#                           adaptive=TRUE,
+#                           longlat = FALSE)
+```
+
+```{r}
+# write_rds(gwr_adaptive, "data/model/gwr_adaptive.rds")
+gwr_adaptive <- read_rds("data/model/gwr_adaptive.rds")
+```
+
+```{r}
+gwr_adaptive
+```
+
+## RF
+
+```{r}
+coords_train <- st_coordinates(train_data)
+coords_test <- st_coordinates(test_data)
+```
+
+```{r}
+train_data_nogeo <- train_data %>% 
+  st_drop_geometry()
+test_data_nogeo <- test_data %>% 
+  st_drop_geometry()
+```
+
+```{r}
+set.seed(415)
+```
+
+```{r}
+# rf <- ranger(resale_price ~ floor_area_sqm + storey_range + remaining_lease +
+#                PROX_CBD + PROX_ELDERCARE + PROX_HAWKER_CENTRE +
+#                PROX_MRT + PROX_PARK + PROX_GOOD_PRI_SCH + PROX_MALL +
+#                PROX_SUPERMARKET + NUM_KINDERGARTEN + NUM_CHILDCARE +
+#                NUM_BUS_STOP + NUM_PRI_SCH,
+#              data=train_data_nogeo)
+```
+
+```{r}
+# write_rds(rf, "data/model/rf.rds")
+rf <- read_rds("data/model/rf.rds")
+```
+
+```{r}
+print(rf)
+```
+
+## GWRF
+
+```{r}
+glimpse(train_data)
+```
+
+```{r}
+# set.seed(415)
+# sample_train <- train_data %>% sample_n(1000)
+
+sample_train <- train_data[1:2500, ]
+sample_train
+```
+
+```{r}
+sample_train_coords <- st_coordinates(sample_train)
+sample_train_nogeo <- sample_train %>% st_drop_geometry()
+```
+
+```{r}
+# gwrf_adapative_bw <- grf.bw(formula = resale_price ~
+#          floor_area_sqm + storey_range + remaining_lease +
+#          PROX_CBD + PROX_ELDERCARE + PROX_HAWKER_CENTRE +
+#          PROX_MRT + PROX_PARK + PROX_GOOD_PRI_SCH + PROX_MALL +
+#          PROX_SUPERMARKET + NUM_KINDERGARTEN + NUM_CHILDCARE +
+#          NUM_BUS_STOP + NUM_PRI_SCH,
+#        sample_train_nogeo,
+#        kernel="adaptive",
+#        coords=sample_train_coords,
+#        step = 10,
+#        bw.min = 300)
+```
+
+However, after running this for 16 hours straight with Rstudio being the only app open on my comptuer, it was still unable to converge. So in order to move on, I will just be using the bandwidth with the highest R squared from the logs, which happened to be Bandwidth: 620 with an R2 of Local Model: 0.928400292072046.
+
+```{r}
+# gwRF_adaptive <- grf(formula = resale_price ~ 
+#                        floor_area_sqm + storey_range + remaining_lease +
+#                        PROX_CBD + PROX_ELDERCARE + PROX_HAWKER_CENTRE +
+#                        PROX_MRT + PROX_PARK + PROX_GOOD_PRI_SCH + PROX_MALL +
+#                        PROX_SUPERMARKET + NUM_KINDERGARTEN + NUM_CHILDCARE +
+#                        NUM_BUS_STOP + NUM_PRI_SCH,
+#                      dframe=train_data_nogeo, 
+#                      bw=620,
+#                      kernel="adaptive",
+#                      ntree = 20,
+#                      coords=coords_train)
+```
+
+```{r}
+# write_rds(gwRF_adaptive, "data/model/gwRF_adaptive.rds")
+gwRF_adaptive <- read_rds("data/model/gwRF_adaptive.rds")
+```
+
+# Model Prediction
+
+## MLR
+
+```{r}
+# MLR
+mlr_pred <- predict(price_mlr, test_data)
+```
+
+```{r}
+mlr_pred_df <- as.data.frame(mlr_pred)
+
+test_data_p_mlr <- cbind(test_data, mlr_pred_df)
+
+rmse(test_data_p_mlr$resale_price, 
+     test_data_p_mlr$mlr_pred)
+```
+
+```{r}
+ggplot(data = test_data_p_mlr,
+       aes(x = mlr_pred,
+           y = resale_price)) +
+  geom_point()
+```
+
+## GWR
+
+```{r}
+# gwr_pred <- gwr.predict(resale_price ~ 
+#                           floor_area_sqm + storey_range + remaining_lease +
+#                           PROX_CBD + PROX_ELDERCARE + PROX_HAWKER_CENTRE +
+#                           PROX_MRT + PROX_PARK + PROX_GOOD_PRI_SCH + PROX_MALL +
+#                           PROX_SUPERMARKET + NUM_KINDERGARTEN + NUM_CHILDCARE +
+#                           NUM_BUS_STOP + NUM_PRI_SCH,
+#                         data=train_data_sp,
+#                         predictdata=test_data_sp,
+#                         bw=bw_adaptive,
+#                         kernel = 'gaussian',
+#                         adaptive=TRUE,
+#                         longlat = FALSE)
+```
+
+## RF
+
+## GWRF
+
+```{r}
+# GWRF
+test_data_with_coords <- cbind(test_data, coords_test) %>%
+  st_drop_geometry()
+
+gwRF_pred <- predict.grf(gwRF_adaptive, 
+                           test_data_with_coords, 
+                           x.var.name="X",
+                           y.var.name="Y", 
+                           local.w=1,
+                           global.w=0)
+```
+
+```{r}
+gwRF_pred_df <- as.data.frame(gwRF_pred)
+```
+
+```{r}
+test_data_p <- cbind(test_data, gwRF_pred_df)
+
+rmse(test_data_p$resale_price, 
+     test_data_p$gwRF_pred)
+```
+
+```{r}
+ggplot(data = test_data_p,
+       aes(x = gwRF_pred,
+           y = resale_price)) +
+  geom_point()
 ```
