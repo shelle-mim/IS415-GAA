@@ -10,19 +10,13 @@ execute:
 editor: visual
 ---
 
-Use block num and street num to find out where the properties are, do NOT use the polygon
-
-Use a ordinal scale for flat level (e.g. 1-5 can be low level, 15-20 can be high rise)
-
-GWR methods -\> random forest, gwr random forest, gw regression (if adventurous)
-
-use at least 2, the OLS method vs at least one GWR
-
 # Introduction
 
 ## Background and Objective
 
-In this exercise, we will be building a predictive model.
+Housing plays a vital part in our day-to-day lives, and purchasing a home is a significant investment for most people. The cost of housing is influenced by various factors, including global economic conditions and property-specific variables such as its size, fittings, and location.
+
+In this exercise, we will be examining the relationship between HDB Resale Flat Prices and some of these factors, such as the location and age of the resale flat, and proximity to amenities.
 
 ## Defining the Study Period
 
@@ -56,6 +50,8 @@ For this exercise, we will be using the below data sets:
 -   Mall Coordinates WebScraper (from https://github.com/ValaryLim/Mall-Coordinates-Web-Scraper)
 
 # Imports
+
+Let us start with importing all the appropriate packages and data sets.
 
 ## Import Packages
 
@@ -256,11 +252,13 @@ tm_shape(pri_schs)+
 
 # Data Wrangling
 
+Now that we have imported all our data, we can start the data cleaning and transformation process in order to prepare our data for the predictive models we plan to run for it.
+
 ## Core DataSet: HDB Resale Flat Prices
 
-Firstly, we see that our dataset only gives us the street name and block of the resale flats. In order to turn this into geospatial data, we will need the longitude and latitude of the each flat.
+Firstly, if we look into our darta set, we see that the dataset only provides us the street name and block of the resale flats. In order to turn this into geospatial data, we will need the longitude and latitude of the each flat.
 
-We will be using OneMapSgAPI in order to do this.
+We will be using OneMapSgAPI in order to do this. Let us first write a function that will invoke the API for us and retrieve the longitude and latitude data we need.
 
 ```{r}
 geocode <- function(block, streetname) {
@@ -281,6 +279,8 @@ geocode <- function(block, streetname) {
   return(output)
 }
 ```
+
+Now, we can run this function on our datasets in order to populate the dataset. This code takes a long time to load, and as such is saved into and loaded from RDS.
 
 ```{r}
 # resale_prices_2021_22$LATITUDE <- 0
@@ -303,6 +303,8 @@ geocode <- function(block, streetname) {
 #   resale_prices_2023$LONGITUDE[i] <- temp_output$results.LONGITUDE
 # }
 ```
+
+We can then do some null checks in order to make sure that our function properly populated our dataframe.
 
 ```{r}
 # sum(is.na(resale_prices_2021_22$LATITUDE))
@@ -358,8 +360,11 @@ resale_prices_2023_sf <- read_rds("data/rds/resale_prices_2023_sf.rds")
 
 We can now display our data on the map.
 
+::: panel-tabset
+## 2021-2022 Resale Price Data
+
 ```{r}
-tmap_mode("view")
+tmap_mode("plot")
 tm_shape(mpsz) +
   tm_polygons() +
 tm_shape(resale_prices_2021_22_sf)+ 
@@ -368,11 +373,14 @@ tm_shape(resale_prices_2021_22_sf)+
              border.col = "black",
              border.lwd = 0.5) +
   tmap_options(check.and.fix = TRUE) +
-  tm_view(set.zoom.limits = c(11, 16))
+  tm_view(set.zoom.limits = c(11, 16)) +
+  tm_layout(legend.outside = TRUE)
 ```
 
+## 2023 Jan & Feb Resale Price Data
+
 ```{r}
-tmap_mode("view")
+tmap_mode("plot")
 tm_shape(mpsz) +
   tm_polygons() +
 tm_shape(resale_prices_2023_sf)+ 
@@ -381,10 +389,14 @@ tm_shape(resale_prices_2023_sf)+
              border.col = "black",
              border.lwd = 0.5) +
   tmap_options(check.and.fix = TRUE) +
-  tm_view(set.zoom.limits = c(11, 16))
+  tm_view(set.zoom.limits = c(11, 16)) +
+  tm_layout(legend.outside = TRUE)
 ```
+:::
 
 ## Geospatial Data
+
+Now that we have transformed our HDB Resale Price data, we can move on to creating some of the other metrics we want to look at in our analysis.
 
 ### Proximity to CBD
 
@@ -563,7 +575,7 @@ With these, we can do our calculations all at once.
 #   num_radius(., pri_schs, "NUM_PRI_SCH", 1000)
 ```
 
-Since these calculations take a while to load, lets save everything to RDS.
+Since these calculations take a while to load, lets save and load everything from RDS.
 
 ```{r}
 # saveRDS(resale_full_details_2021_22_sf, file="data/rds/resale_full_details_2021_22_sf.rds")
@@ -703,7 +715,7 @@ five_room_2023_sf <- read_rds("data/rds/five_room_2023_sf.rds")
 Before we jump into our analysis, let us first do some visualization on our test data, starting with our resale prices.
 
 ```{r}
-# Remove scientific notation
+# Remove scientific notation from our graphs
 options(scipen = 999)
 ```
 
@@ -774,7 +786,7 @@ Although we do see quite a lot of outliers in our boxplots (with the highest pri
 Let us look at the distribution of our Resale Flat factors, namely floor_area_sqm, storey_range, remaining_lease and age_of_unit.
 
 ::: panel-tabset
-## 3 Room
+### 3 Room
 
 ```{r}
 floor_area_plot <- ggplot(data = three_room_2021_22_sf, aes(x = `floor_area_sqm`)) + 
@@ -792,7 +804,7 @@ unit_age_plot <- ggplot(data = three_room_2021_22_sf, aes(x = `age_of_unit`)) +
 ggarrange(floor_area_plot, storey_range_plot, remaining_lease_plot, unit_age_plot, ncol = 2, nrow = 2)
 ```
 
-## 4 Room
+### 4 Room
 
 ```{r}
 floor_area_plot <- ggplot(data = four_room_2021_22_sf, aes(x = `floor_area_sqm`)) + 
@@ -810,7 +822,7 @@ unit_age_plot <- ggplot(data = four_room_2021_22_sf, aes(x = `age_of_unit`)) +
 ggarrange(floor_area_plot, storey_range_plot, remaining_lease_plot, unit_age_plot, ncol = 2, nrow = 2)
 ```
 
-## 5 Room
+### 5 Room
 
 ```{r}
 floor_area_plot <- ggplot(data = five_room_2021_22_sf, aes(x = `floor_area_sqm`)) + 
@@ -1054,7 +1066,7 @@ corrplot(cor(four_room_nogeo),
                    type = "upper")
 ```
 
-From this correlation plot, we can see that all our factors have a relatively low correlation (less than 0.6 and greater than -0.6) except for **remaining_lease** and **age_of_unit**, which have an extremely negative correlation of -1. This makes sense, as typically all HDB flats have a 99 year lease and therefore the age of the flat would be directly related to the remaining lease (would add up to 99).
+From this correlation plot, we can see that all our factors have a relatively low correlation (less than 0.6 and greater than -0.6) except for **remaining_lease** and **age_of_unit**, which have an extremely negative correlation of -1. This makes sense, as typically all HDB flats have a 99 year lease and therefore the age of the flat would be directly related to the remaining lease (would add up to 99, and therefore have a negative relationship with each other).
 
 We must therefore remove one of these two factors. We will be removing the age_of_unit.
 
@@ -1073,6 +1085,10 @@ saveRDS(test_data, file="data/rds/test_data.rds")
 
 # Predictive Model Training
 
+Now that we have finished all that preprocessing, we can finally move on to the our model training. We will be training predictive models with 3 different methods, namely Multiple Linear Regression, Random Forest, and Geographically Weighted Random Forest.
+
+First, let us load in our training and testing data from rds.
+
 ```{r}
 train_data <- read_rds("data/rds/train_data.rds")
 test_data <- read_rds("data/rds/test_data.rds")
@@ -1080,12 +1096,9 @@ test_data <- read_rds("data/rds/test_data.rds")
 
 ## Multiple Linear Regression
 
+Let us first train a simple multiple linear regression, with resale price being our variable to predict.
+
 ```{r}
-# floor_area_sqm, storey_range, remaining_lease
-# 
-# PROX_CBD, PROX_ELDERCARE, PROX_HAWKER_CENTRE, PROX_MRT, PROX_PARK, PROX_GOOD_PRI_SCH, PROX_MALL, PROX_SUPERMARKET, NUM_KINDERGARTEN, NUM_CHILDCARE, NUM_BUS_STOP and NUM_PRI_SCH
-
-
 # price_mlr <- lm(resale_price ~ floor_area_sqm +
 #                   storey_range + remaining_lease +
 #                   PROX_CBD + PROX_ELDERCARE + PROX_HAWKER_CENTRE +
@@ -1105,7 +1118,19 @@ price_mlr <- read_rds("data/model/price_mlr.rds")
 summary(price_mlr)
 ```
 
+As we can see, all of our independent variables are statistically significant. This way, we know that our model is appropriate as all our independent variables do indeed have an effect on the price, and we do not need to make any changes to our input data.
+
+```{r}
+ols_regress(price_mlr)
+```
+
+We can see here that we have a R-squared value of our multiple linear regression is very low at only 0.57, which means that this model can only represent about 57% of the variance present in the data This indicates that this model is not well fitted to the data. Hopefully our other models will perform better.
+
 ## GWR
+
+Let us now try Geographically Weighted Regression, which is similar to our Multiple Linear Regression, but also takes into account the location of resale flat in question as an independent variable.
+
+First, we will have to convert our data into an SP object.
 
 ```{r}
 train_data_sp <- as_Spatial(train_data)
@@ -1113,6 +1138,8 @@ test_data_sp <- as_Spatial(test_data)
 
 train_data_sp
 ```
+
+Next, we have to calculate the appropriate bandwidth for our model to use.
 
 ```{r}
 # bw_adaptive <- bw.gwr(resale_price ~ floor_area_sqm +
@@ -1138,6 +1165,8 @@ bw_adaptive <- read_rds("data/model/bw_adaptive.rds")
 bw_adaptive
 ```
 
+Now that those are done, we can proceed to calibrate our GWR model.
+
 ```{r}
 # gwr_adaptive <- gwr.basic(formula = resale_price ~ 
 #                             floor_area_sqm + storey_range + remaining_lease +
@@ -1161,7 +1190,11 @@ gwr_adaptive <- read_rds("data/model/gwr_adaptive.rds")
 gwr_adaptive
 ```
 
+Once again, all our independent variable are noted to be statistically significant. With the additional of the geographic weights, we can see that our R-squared value drastically improves to 0.91892 in this model!
+
 ## RF
+
+Next, let us try random forest. However, for this method we will need to remove the geometry from our dataset first, so we will do that and store our coordinates into RDS for use later.
 
 ```{r}
 coords_train <- st_coordinates(train_data)
@@ -1175,9 +1208,13 @@ test_data_nogeo <- test_data %>%
   st_drop_geometry()
 ```
 
+Since Random Forest has some degree of randomness to it, let us first set a seed.
+
 ```{r}
 set.seed(415)
 ```
+
+Now we can calibrate our random forest model.
 
 ```{r}
 # rf <- ranger(resale_price ~ floor_area_sqm + storey_range + remaining_lease +
@@ -1197,24 +1234,33 @@ rf <- read_rds("data/model/rf.rds")
 print(rf)
 ```
 
+From our result, we can see we have an R-squared of 0.9294964! This is even better than our Geographically Weighted Regression, despite not having used our coordinate information at all!
+
 ## GWRF
+
+Lastly, we shall try Geographically Weighted Random Forest. Similar to how GWR was just our MLR with our data coordinates added to it, GWRF would be Random Forest, but with our coordinate data added back into our model as an independent variable.
+
+Since we are working with spatial data, once again, we will need to calculate an optimal bandwidth for our model. Let us first look at our training dataset once again.
 
 ```{r}
 glimpse(train_data)
 ```
 
-```{r}
-# set.seed(415)
-# sample_train <- train_data %>% sample_n(1000)
+Here we can see that we have about 23k data points. As it takes a long time for the algorithm to find the optimal bandwidth, let us use a small sample size. A sample size of 2.5k easily covers more than 10% of our dataset, and taking the first 2.5k rows of our dataset should correspond to a sample of the first 2 months or so of our training data (since the data was not reordered).
 
+```{r}
 sample_train <- train_data[1:2500, ]
 sample_train
 ```
+
+Once again, we will seperate out our coordinates in order to put them separately into the model.
 
 ```{r}
 sample_train_coords <- st_coordinates(sample_train)
 sample_train_nogeo <- sample_train %>% st_drop_geometry()
 ```
+
+And now we can calibrate our bandwidth.
 
 ```{r}
 # gwrf_adapative_bw <- grf.bw(formula = resale_price ~
@@ -1230,16 +1276,20 @@ sample_train_nogeo <- sample_train %>% st_drop_geometry()
 #        bw.min = 300)
 ```
 
-However, after running this for 16 hours straight with Rstudio being the only app open on my comptuer, it was still unable to converge. So in order to move on, I will just be using the bandwidth with the highest R squared from the logs, which happened to be Bandwidth: 620 with an R2 of Local Model: 0.928400292072046.
+However, after running this function for 16 hours straight with Rstudio being the only app running on my computer, it was still unable to converge on an optimal bandwidth. So in order to move on, I will be using the bandwidth with the highest R squared from the logs, which happened to be:
+
+Bandwidth: 620 with an R2 of Local Model: 0.928400292072046.
+
+We can now calibrate our GWRF using this bandwidthm along with our prepared dataframe and coordinates from previously.
 
 ```{r}
-# gwRF_adaptive <- grf(formula = resale_price ~ 
+# gwRF_adaptive <- grf(formula = resale_price ~
 #                        floor_area_sqm + storey_range + remaining_lease +
 #                        PROX_CBD + PROX_ELDERCARE + PROX_HAWKER_CENTRE +
 #                        PROX_MRT + PROX_PARK + PROX_GOOD_PRI_SCH + PROX_MALL +
 #                        PROX_SUPERMARKET + NUM_KINDERGARTEN + NUM_CHILDCARE +
 #                        NUM_BUS_STOP + NUM_PRI_SCH,
-#                      dframe=train_data_nogeo, 
+#                      dframe=train_data_nogeo,
 #                      bw=620,
 #                      kernel="adaptive",
 #                      ntree = 20,
@@ -1251,13 +1301,25 @@ However, after running this for 16 hours straight with Rstudio being the only ap
 gwRF_adaptive <- read_rds("data/model/gwRF_adaptive.rds")
 ```
 
+```{r}
+gwRF_adaptive$Global.Model
+```
+
+Our R-squared for this model is 0.9227056, which is slightly lower than our Random Forest model interestingly enough. However, it is still quite high, and we must see how it performs on our test data before drawing any conclusions on its effectiveness compared to other models.
+
 # Model Prediction
+
+We can now move on to predicting on our test data to see the effectiveness of our models on data it has not seen before. In this section, we will be testing on MLR, RF, and GWRF. GWR will be excluded as it did not perform as well as our Random Forest methods, and takes a long time to run (as well as we ran into some errors when trying to call predict on the model).
 
 ## MLR
 
+Let us start by using the predict() function on our price_mlr model.
+
 ```{r}
-# MLR
-mlr_pred <- predict(price_mlr, test_data)
+# mlr_pred <- predict(price_mlr, test_data)
+
+# write_rds(mlr_pred, "data/model/mlr_pred.rds")
+mlr_pred <- read_rds("data/model/mlr_pred.rds")
 ```
 
 ```{r}
@@ -1265,65 +1327,119 @@ mlr_pred_df <- as.data.frame(mlr_pred)
 
 test_data_p_mlr <- cbind(test_data, mlr_pred_df)
 
-rmse(test_data_p_mlr$resale_price, 
-     test_data_p_mlr$mlr_pred)
+rmse_mlr <- rmse(test_data_p_mlr$resale_price, test_data_p_mlr$mlr_pred)
+
+rmse_mlr
 ```
 
 ```{r}
 ggplot(data = test_data_p_mlr,
        aes(x = mlr_pred,
            y = resale_price)) +
-  geom_point()
+  geom_point() +
+  geom_abline(color="red")
 ```
 
-## GWR
-
-```{r}
-# gwr_pred <- gwr.predict(resale_price ~ 
-#                           floor_area_sqm + storey_range + remaining_lease +
-#                           PROX_CBD + PROX_ELDERCARE + PROX_HAWKER_CENTRE +
-#                           PROX_MRT + PROX_PARK + PROX_GOOD_PRI_SCH + PROX_MALL +
-#                           PROX_SUPERMARKET + NUM_KINDERGARTEN + NUM_CHILDCARE +
-#                           NUM_BUS_STOP + NUM_PRI_SCH,
-#                         data=train_data_sp,
-#                         predictdata=test_data_sp,
-#                         bw=bw_adaptive,
-#                         kernel = 'gaussian',
-#                         adaptive=TRUE,
-#                         longlat = FALSE)
-```
+For this model, we can see our data is quite spread from the Line of Equality (where resale_price = mlr_pred), showing that our model does not fit our data well. A lot of our data points lie above the Line of Equality, suggesting that our model is under-predicting the price more than often.
 
 ## RF
+
+```{r}
+# rf_pred <- predict(rf, test_data_nogeo)
+
+# write_rds(rf_pred, "data/model/rf_pred.rds")
+rf_pred <- read_rds("data/model/rf_pred.rds")
+```
+
+```{r}
+rf_pred_df <- as.data.frame(rf_pred)
+
+test_data_p_rf <- cbind(test_data, rf_pred_df)
+
+rmse_rf <- rmse(test_data_p_rf$resale_price, test_data_p_rf$prediction)
+rmse_rf
+```
+
+```{r}
+ggplot(data = test_data_p_rf,
+       aes(x = prediction,
+           y = resale_price)) +
+  geom_point() +
+  geom_abline(color="red")
+```
+
+Here we can see that our data points are much closer to our Line of Equality, demonstrating that our random forest is much better than our MLR at accurately predicting the price of resale flats on our unseen data.
 
 ## GWRF
 
 ```{r}
-# GWRF
 test_data_with_coords <- cbind(test_data, coords_test) %>%
   st_drop_geometry()
 
-gwRF_pred <- predict.grf(gwRF_adaptive, 
-                           test_data_with_coords, 
-                           x.var.name="X",
-                           y.var.name="Y", 
-                           local.w=1,
-                           global.w=0)
+# gwRF_pred <- predict.grf(gwRF_adaptive, 
+#                            test_data_with_coords, 
+#                            x.var.name="X",
+#                            y.var.name="Y", 
+#                            local.w=1,
+#                            global.w=0)
+
+# write_rds(gwRF_pred, "data/model/gwRF_pred.rds")
+gwRF_pred <- read_rds("data/model/gwRF_pred.rds")
 ```
 
 ```{r}
 gwRF_pred_df <- as.data.frame(gwRF_pred)
-```
 
-```{r}
 test_data_p <- cbind(test_data, gwRF_pred_df)
 
-rmse(test_data_p$resale_price, 
-     test_data_p$gwRF_pred)
+rmse_gwrf <- rmse(test_data_p$resale_price, test_data_p$gwRF_pred)
+rmse_gwrf
 ```
 
 ```{r}
 ggplot(data = test_data_p,
        aes(x = gwRF_pred,
            y = resale_price)) +
-  geom_point()
+  geom_point() +
+  geom_abline(color="red")
 ```
+
+Once again, we can see that our predictions by our GWRF model line close to our Line of Equality, signifying good fit on our unseen test data set. Our results look quite similar to that of our Random Forest, so let us evaluate their goodness of it using RMSE in the next section.
+
+# Evaluation & Conclusion
+
+Now that we have carried out our prediction on all 3 of our chosen models on our test data, we can now compare their effectiveness using RMSE. RMSE stands for Root Mean Square Error, which takes the root of the average squared (euclidean) distance between the actual resale price value and the predicted resale price value as a measure of how well the model fits / predicts the data. For this metric, the smaller the RMSE, the better the fit of the model as there is less average error in the model's prediction.
+
+::: panel-tabset
+## MLR RMSE
+
+```{r}
+rmse_mlr
+```
+
+## RF RMSE
+
+```{r}
+rmse_rf
+```
+
+## GWRF RMSE
+
+```{r}
+rmse_gwrf
+```
+:::
+
+And from these RMSEs, we can determine that Geographically Weighted Random Forest is our clear winner here, having the lowest RMSE among the 3. Random Forest, although having a higher R-Squared value in training, does not perform better than our Geographically Weighted Random Forest model when generalised onto unseen testing data. And of course our OLS MLR model performs the worst, as expected after seeing even our training data having a poor performance and low R-squared value.
+
+Unfortunately, unlike regression, we are unable to really examine and break down the factors that goes into splitting up our random forest and how they affect the trees. However, we can suggest improvements to this model. In this analysis, due to the limited time and computing power available, we limited this model to only 20 trees for each of the local random forests. This greatly limits the model's ability to grow fine-grained divisions due to the limit number of trees. Therefore, this Geographically Weighted Random Forest model could be further improved by increasing the number of ntrees specified when training the model.
+
+# References
+
+A big thank you to these senior's works as provided by prof:
+
+-   [Take-Home Exercise 3: Hedonic Pricing Models for Resale Prices of Public Housing in Singapore](https://is415-msty.netlify.app/posts/2021-10-25-take-home-exercise-3/) by MEGAN SIM TZE YEN.
+
+-   [Take-home Exercise 3](https://aisyahajit2018-is415.netlify.app/posts/2021-11-07-take-home-exercise-3/) by NOR AISYAH BINTE AJIT.
+
+Without these two exemplary senior's works, as well as prof's In-Class exercises, I would not have been able to complete this assignment.
